@@ -33,7 +33,7 @@ load("004_walmartCombinedData.Rdata")
 ##------------------------------------------------------------------
 ## Source Utilities
 ##------------------------------------------------------------------
-source("/Users/alexstephens/Development/kaggle/walmart/code/999_UtilityFunctions.r")
+source("/Users/alexstephens/Development/kaggle/walmart/code/000_UtilityFunctions.r")
 
 
 ##------------------------------------------------------------------
