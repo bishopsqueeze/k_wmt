@@ -425,7 +425,7 @@ calcFourierOrder <- function(x, max.order=20, h=39) {
 ##------------------------------------------------------------------
 ## <function> :: calcFourierOrderSearch
 ##------------------------------------------------------------------
-calcFourierOrderSearch <- function(x, max.order=30, h=39) {
+calcFourierOrderSearch <- function(x, min.order=5, max.order=30) {
 	
 	## do a box-cox transformation if all x > 0
 	if ( any(x < 0) ) {
@@ -440,27 +440,30 @@ calcFourierOrderSearch <- function(x, max.order=30, h=39) {
     y   <- ts(x, start=c(2010,5), freq=365.25/7)
     
     ## define a placeholder matrix for results
-    bestmat <- matrix(, nrow=max.order, ncol=2)
+    bestmat <- matrix(, nrow=(max.order-min.order+1), ncol=2)
     
     ## compute even orders only
-    for (i in seq(from=1, to=max.order, by=1)) {
+    for (i in seq(from=min.order, to=max.order, by=1)) {
     
+        ## generate a data frame for the fit
+        fit.df  <- data.frame(x=x, fourier(y, K=i))
+        
         ## compute the arima fit
-        fit     <- glm(x ~ fourier(y, K=i), family="gaussian")
-        fit2    <- stepAIC(fit, direction="both", trace=2)
+        fit     <- glm(x ~ . , data=fit.df, family="gaussian")
+        fit2    <- stepAIC(fit, direction="backward", trace=1)
 
         ## record results
-        bestmat[i,] <- c(i, fit2$aic)
-    
+        bestmat[(i-min.order+1),] <- c(i, fit2$aic)
     }
     
     ## identify the order that minimized the aicc & refit
-    k       <- bestmat[ which( (bestmat[,2] == min(bestmat[,2])) ) , 1]
-    bestfit <- stepAIC(glm(x ~ fourier(y, K=k), family="gaussian"), direction="both", trace=2)
+    k       <- bestmat[ which( (bestmat[,2] == min(bestmat[,2])) ) , 1][1]
+    fit.df  <- data.frame(x=x, fourier(y, K=k))
+    bestfit <- stepAIC(glm(x ~ . , data=fit.df, family="gaussian"), direction="backward", trace=0)
     fitted	<- InvBoxCox(as.vector(fitted(bestfit)), lambda)
     
 	## return the original vector, the in-sample, out-of-sample, and box-cox parameter
-	return(list(x=orig.x, fitted=fitted, lambda=lambda, k=k, res=bestmat))
+	return(list(x=orig.x, fitted=fitted, lambda=lambda, k=k, res=bestmat, coef=coefficients(bestfit), aic=bestfit$aic))
 }
 
 ##########################################################################################

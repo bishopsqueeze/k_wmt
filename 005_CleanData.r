@@ -29,12 +29,10 @@ wd	<- getwd()
 ##------------------------------------------------------------------
 load("004_walmartCombinedData.Rdata")
 
-
 ##------------------------------------------------------------------
 ## Source Utilities
 ##------------------------------------------------------------------
-source("/Users/alexstephens/Development/kaggle/walmart/code/000_UtilityFunctions.r")
-
+source("/Users/alexstephens/Development/kaggle/walmart/k_wmt/000_UtilityFunctions.r")
 
 ##------------------------------------------------------------------
 ## Constants
@@ -535,10 +533,14 @@ for (i in 1:numSd) {
 	} else if ( mean.sales < 100 ) {
 	
         tr.dat$ws.fin               <- tr.dat$ws.man
-  		tr.dat$ws.fin[ bad.idx ]    <- median(tr.dat$ws.man, na.rm=TRUE)
+        ## 03/26/2014 - swap with 0 replace
+        ##tr.dat$ws.fin[ bad.idx ]    <- median(tr.dat$ws.man, na.rm=TRUE)
+  		tr.dat$ws.fin[ bad.idx ]    <- 0
 		te.dat$ws.fin               <- te.dat$weekly_sales
 		tmp.list[["data"]]$ws.fin	<- c(tr.dat$ws.fin,  te.dat$ws.fin)
-		clean.type	<- c("small_dollar_median")
+		## 03/26/2014 - swap with 0 replace
+        ##clean.type	<- c("small_dollar_median")
+        clean.type	<- c("small_dollar_zero")
 	
 	##--------------------------------------------------------------
 	## median replace for small numbers of observations (>20)
@@ -546,10 +548,14 @@ for (i in 1:numSd) {
 	} else if ( bad.sum >= 123 ) {
         
         tr.dat$ws.fin               <- tr.dat$ws.man
-  		tr.dat$ws.fin[ bad.idx ]    <- median(tr.dat$ws.man, na.rm=TRUE)
+        ## 03/26/2014 - swap with 0 replace
+  		##tr.dat$ws.fin[ bad.idx ]    <- median(tr.dat$ws.man, na.rm=TRUE)
+        tr.dat$ws.fin[ bad.idx ]    <- 0
 		te.dat$ws.fin               <- te.dat$weekly_sales
 		tmp.list[["data"]]$ws.fin	<- c(tr.dat$ws.fin,  te.dat$ws.fin)
-		clean.type	<- c("small_count_median")
+		## 03/26/2014 - swap with 0 replace
+        ##clean.type	<- c("small_count_median")
+        clean.type	<- c("small_count_zero")
         
 	##--------------------------------------------------------------
 	## remaining items handled based on a visual review of the data
@@ -681,11 +687,11 @@ if ((i %% 100) == 0) { cat("iteration %d", i, "\n") }
 ##------------------------------------------------------------------
 ## Save results [APPLY THE TIMESTAMP
 ##------------------------------------------------------------------
-#save(	comb, train, test, stores, features,
-#		uniq.list, sd.list,
-#		prototype.date, time.df, holiday.df,
-#		clean.list,
-#		file="005_walmartCombinedData_20140314.Rdata")
+save(	comb, train, test, stores, features,
+		uniq.list, sd.list,
+		prototype.date, time.df, holiday.df,
+		clean.list,
+		file="005_walmartCombinedData_20140326.Rdata")
 		
 
 

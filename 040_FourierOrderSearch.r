@@ -38,8 +38,7 @@ rm(train, test, comb, sd.list)
 ##------------------------------------------------------------------
 ## Source Utilities
 ##------------------------------------------------------------------
-source("/Users/alexstephens/Development/kaggle/walmart/code/999_UtilityFunctions.r")
-
+source("/Users/alexstephens/Development/kaggle/walmart/k_wmt/000_UtilityFunctions.r")
 
 ##------------------------------------------------------------------
 ## Constants
@@ -67,7 +66,7 @@ minTime         <- 5
 maxTime         <- 186
 
 ## minimum requirements for a fit
-minObs          <- 30
+minObs          <- 50
 
 ##------------------------------------------------------------------
 ## Main
@@ -115,7 +114,7 @@ for (i in 1:numTestSd) {
             
             num.sim <- 30
             ws      <- tmp.hist$ws.min10
-            tmp.fit <- calcFourierRegression(ws, max.order=num.sim)
+            tmp.fit <- calcFourierOrderSearch(ws, min.order=5, max.order=num.sim)
 	
 			## plot the results
 			pdf(tmp.filename)
@@ -127,12 +126,12 @@ for (i in 1:numTestSd) {
 			
 			## save the results
             fourierRegression.list[[tmp.sdName]] <- tmp.fit
-			
+            
 		} else {
-		
+            
 			## will hit if num.obs <= 50
 			fourierRegression.list[[tmp.sdName]] <- NULL
-			
+            
 		}
 	}
 }
@@ -140,7 +139,7 @@ for (i in 1:numTestSd) {
 ##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
-save(fourierRegression.list, file="040.01_FourierRegressionSearch_20140326.Rdata")
+save(fourierRegression.list, file="040_FourierOrderSearch_20140326.Rdata")
 
 
 
