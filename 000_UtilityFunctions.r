@@ -471,7 +471,7 @@ calcFourierOrderSearch <- function(x, min.order=5, max.order=30) {
 ##------------------------------------------------------------------
 ## <function> :: calcFourierVariableSearch
 ##------------------------------------------------------------------
-calcFourierVariableSearch <- function(x, regs.hist=NULL, regs.proj=NULL, k=6, h=39) {
+calcFourierVariableSearch <- function(x, regs.hist=NULL, k=6) {
 	
 	## do a box-cox transformation if all x > 0
 	if ( any(x < 0) ) {
@@ -491,19 +491,19 @@ calcFourierVariableSearch <- function(x, regs.hist=NULL, regs.proj=NULL, k=6, h=
     
 	## append regressors if they exist
 	if ( !is.null(regs.hist) ) {
-        yhist       <- data.frame(x=x, regs.hist, z)
-        fit         <- glm(x ~ . , data=yhist, family="gaussian")
+        fit.df      <- data.frame(x=x, regs.hist, z)
+        fit         <- glm(x ~ . , data=fit.df, family="gaussian")
         fit2        <- stepAIC(fit, direction="backward", trace=2)
         fitted      <- InvBoxCox(as.vector(fitted(fit2)), lambda)
     } else {
-        yhist       <- data.frame(x=x, z)
-        fit         <- glm(x ~ . , data=yhist, family="gaussian")
+        fit.df      <- data.frame(x=x, z)
+        fit         <- glm(x ~ . , data=fit.df, family="gaussian")
         fit2        <- stepAIC(fit, direction="backward", trace=2)
         fitted      <- InvBoxCox(as.vector(fitted(fit2)), lambda)
     }
     
 	## return the original vector, the in-sample, out-of-sample, and box-cox parameter
-	return(list(x=orig.x, fitted=fitted, lambda=lambda, k=k, coef=coefficients(fit2)))
+	return(list(x=orig.x, fitted=fitted, lambda=lambda, k=k, coef=coefficients(fit2), aic=fit2$aic))
 }
 
 
