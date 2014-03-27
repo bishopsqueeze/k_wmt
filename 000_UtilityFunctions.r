@@ -449,8 +449,8 @@ calcFourierOrderSearch <- function(x, min.order=5, max.order=30) {
         fit.df  <- data.frame(x=x, fourier(y, K=i))
         
         ## compute the arima fit
-        fit     <- glm(x ~ . , data=fit.df, family="gaussian")
-        fit2    <- stepAIC(fit, direction="backward", trace=1)
+        fit2     <- glm(x ~ . , data=fit.df, family="gaussian")
+        #fit2    <- stepAIC(fit, direction="backward", trace=1)
 
         ## record results
         bestmat[(i-min.order+1),] <- c(i, fit2$aic)
@@ -459,7 +459,7 @@ calcFourierOrderSearch <- function(x, min.order=5, max.order=30) {
     ## identify the order that minimized the aicc & refit
     k       <- bestmat[ which( (bestmat[,2] == min(bestmat[,2])) ) , 1][1]
     fit.df  <- data.frame(x=x, fourier(y, K=k))
-    bestfit <- stepAIC(glm(x ~ . , data=fit.df, family="gaussian"), direction="backward", trace=0)
+    bestfit <- stepAIC(glm(x ~ . , data=fit.df, family="gaussian"), direction="backward", trace=1)
     fitted	<- InvBoxCox(as.vector(fitted(bestfit)), lambda)
     
 	## return the original vector, the in-sample, out-of-sample, and box-cox parameter

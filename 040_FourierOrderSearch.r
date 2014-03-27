@@ -28,7 +28,8 @@ wd	<- getwd()
 ##------------------------------------------------------------------
 ## Load data
 ##------------------------------------------------------------------
-load("005_walmartCombinedData_20140314.Rdata")
+##load("005_walmartCombinedData_20140314.Rdata")
+load("005_walmartCombinedData_20140326.Rdata")
 
 ##------------------------------------------------------------------
 ## Remove superfluous items
@@ -99,7 +100,7 @@ for (i in 1:numTestSd) {
 	num.obs		<- sum(!is.na(tmp.hist$weekly_sales))
 
 	## define a filename for the plot
-	tmp.folder		<- paste(wd, "/FourierRegressionOrder_0326/", substr(tmp.sd,1,2), "/", sep="")
+	tmp.folder		<- paste(wd, "/FourierRegressionOrderOnly40_0326/", substr(tmp.sd,1,2), "/", sep="")
 	tmp.filename	<- paste(tmp.folder, tmp.sdName, ".FourierRegressionOrder.pdf", sep="")
 	dir.create(tmp.folder, showWarnings = FALSE)
 
@@ -112,9 +113,9 @@ for (i in 1:numTestSd) {
 	if ( (tmp.store >= 1) & (tmp.dept >= 1) ) {
 		if (num.obs >= minObs) {
             
-            num.sim <- 30
+            #num.sim <- 30
             ws      <- tmp.hist$ws.min10
-            tmp.fit <- calcFourierOrderSearch(ws, min.order=5, max.order=num.sim)
+            tmp.fit <- calcFourierOrderSearch(ws, min.order=40, max.order=40)
 	
 			## plot the results
 			pdf(tmp.filename)
@@ -139,7 +140,7 @@ for (i in 1:numTestSd) {
 ##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
-save(fourierRegression.list, file="040_FourierOrderSearch_20140326.Rdata")
+save(fourierRegression.list, file="040_FourierOrderSearch_Only40_20140326.Rdata")
 
 
 
