@@ -30,16 +30,21 @@ load("005_walmartCombinedData_20140314.Rdata")
 ##------------------------------------------------------------------
 ## Load in each of the partial fourier files
 ##------------------------------------------------------------------
-load("041.01_VanillaFourier_0101_4327_20140314.Rdata")
-list.0101_4327 <- vanilla.list
+
+load("042_VanillaFourier_0101_2179_20140326.Rdata")
+list.0101_2179 <- vanilla.list
 rm(vanilla.list)
 
-load("041.01_VanillaFourier_4329_4398_20140314.Rdata")
-list.4329_4399 <- vanilla.list
+load("042_VanillaFourier_2180_2198_20140326.Rdata")
+list.2180_2198 <- vanilla.list
 rm(vanilla.list)
 
-load("041.01_VanillaFourier_4401_4598_20140314.Rdata")
-list.4401_4499 <- vanilla.list
+load("042_VanillaFourier_2201_2298_20140326.Rdata")
+list.2201_2298 <- vanilla.list
+rm(vanilla.list)
+
+load("042_VanillaFourier_2301_4598_20140326.Rdata")
+list.2301_4598 <- vanilla.list
 rm(vanilla.list)
 
 
@@ -86,7 +91,7 @@ fits.todo	<- sort( tr.tbl[ -which(names(tr.tbl) %in% sd.vanilla) ] )
 vanilla.list <- tmp.vanilla
 
 ## save the results
-save(vanilla.list, file="041.01_VanillaFourier_All_Min100_20140314.Rdata")
+save(vanilla.list, file="042_VanillaFourier_All_Min100_20140326.Rdata")
 
 
 

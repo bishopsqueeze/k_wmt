@@ -131,7 +131,7 @@ for (i in 1:numTestSd) {
 	##------------------------------------------------------------------
 	## basic stl projection
 	##------------------------------------------------------------------
-	if ( (tmp.store > 22) & (tmp.dept > 0) ) {
+	if ( (tmp.store == 21) & (tmp.dept > 79) ) {
 		if ((num.obs > minObs) & (tmp.sd != "43_28")) {
             if ( !is.null(orderCoef.list[[tmp.sdName]]) ) {
 
@@ -476,7 +476,7 @@ for (i in 1:numTestSd) {
 ##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
-##save(vanilla.list, file="042_VanillaFourier_2301_XXXX_20140326.Rdata")
+##save(vanilla.list, file="042_VanillaFourier_2180_2198_20140326.Rdata")
 
 
 

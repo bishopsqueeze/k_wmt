@@ -113,7 +113,7 @@ for (i in 1:numTestSd) {
 	if ( (tmp.store == 15) & (tmp.dept >= 80) ) {
 		if (num.obs >= minObs) {
             
-            #num.sim <- 30
+            ## grab the weekly sales data (floored at $10 b/c of box-cox)
             ws      <- tmp.hist$ws.min10
             tmp.fit <- calcFourierOrderSearch(ws, min.order=40, max.order=40)
 	

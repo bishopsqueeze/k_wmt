@@ -26,7 +26,7 @@ wd	<- getwd()
 ## Load data
 ##------------------------------------------------------------------
 load("005_walmartCombinedData_20140314.Rdata")
-load("040.01_FourierRegressionSearch_20140314.Rdata")   ## optimal fourier orders
+#load("040.01_FourierRegressionSearch_20140314.Rdata")   ## optimal fourier orders
 
 ##------------------------------------------------------------------
 ## Remove superfluous items
@@ -36,20 +36,20 @@ rm(train, test, stores, features, comb, sd.list)
 ##------------------------------------------------------------------
 ## Process the oprimal fourier orders file
 ##------------------------------------------------------------------
-order.list  <- list()
-fit.names   <- names(fourierRegression.list)
-
-for (i in 1:length(fit.names)) {
-    
-    ## get the AIC data, but set a low-limit to the order == 5
-    tmp.name    <- fit.names[i]
-    tmp.res     <- fourierRegression.list[[tmp.name]]$res
-    tmp.res     <- tmp.res[ tmp.res[,1] >=5 , ]
-    
-    ## then pull off the order with the minimum in-sample AICc
-    tmp.k       <- tmp.res[ which(tmp.res[,2] == min(tmp.res[,2])) , 1][1]
-    order.list[[tmp.name]]$k    <- tmp.k
-}
+#order.list  <- list()
+#fit.names   <- names(fourierRegression.list)
+#
+#for (i in 1:length(fit.names)) {
+#
+#    ## get the AIC data, but set a low-limit to the order == 5
+#    tmp.name    <- fit.names[i]
+#    tmp.res     <- fourierRegression.list[[tmp.name]]$res
+#    tmp.res     <- tmp.res[ tmp.res[,1] >=5 , ]
+#
+#    ## then pull off the order with the minimum in-sample AICc
+#    tmp.k       <- tmp.res[ which(tmp.res[,2] == min(tmp.res[,2])) , 1][1]
+#    order.list[[tmp.name]]$k    <- tmp.k
+#}
 
 ##------------------------------------------------------------------
 ## Source Utilities
@@ -129,16 +129,15 @@ for (i in 1:numTestSd) {
 	if ( (tmp.store >= 1) & (tmp.dept >= 1) ) {
 		if (num.obs >= minObs) {
             
-            ##
-            ##num.sim <- 30
+            ## grab the weekly sales data (floored at $10 b/c of box-cox)
             ws      <- tmp.hist$ws.min10[ (tmp.tr_fl == 1) ]
-            k       <- order.list[[tmp.sdName]]$k
-            ## get the order
             
-            #tmp.fit <- calcFourierRegression(ws, max.order=num.sim)
-            reg.hist    <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
-            reg.proj    <- holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m01")]
-            tmp.fit     <- calcFourierVariableSearch(ws, regs.hist=reg.hist, regs.proj=reg.proj, k=k, h=39)
+            ## define the regressors
+            reg.hist    <- holiday.df[ (tmp.tr_fl == 1), ]
+            #reg.proj    <- holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m01")]
+            
+            ## perform the fit
+            tmp.fit     <- calcFourierVariableSearch(ws, regs.hist=reg.hist, k=40)
         
         
 			## plot the results

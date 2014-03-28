@@ -484,10 +484,9 @@ calcFourierVariableSearch <- function(x, regs.hist=NULL, k=6) {
 	
 	## define the timeseries
     y   <- ts(x, start=c(2010,5), freq=365.25/7)
-    
-	## compute the fourier series
-	z 	<- fourier(y, K=k)
-    #zf	<- fourierf(y, K=k, h=h)
+
+    ## compute a complete set of orders
+    z 	<- fourier(y, K=k)
     
 	## append regressors if they exist
 	if ( !is.null(regs.hist) ) {
