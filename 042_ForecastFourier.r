@@ -131,7 +131,7 @@ for (i in 1:numTestSd) {
 	##------------------------------------------------------------------
 	## basic stl projection
 	##------------------------------------------------------------------
-	if ( (tmp.store > 0) & (tmp.dept > 0) ) {
+	if ( (tmp.store > 22) & (tmp.dept > 0) ) {
 		if ((num.obs > minObs) & (tmp.sd != "43_28")) {
             if ( !is.null(orderCoef.list[[tmp.sdName]]) ) {
 
@@ -445,6 +445,9 @@ for (i in 1:numTestSd) {
                 ##------------------------------------------------------------------
                 ## compute a basic stl projection
                 ##------------------------------------------------------------------
+                
+                ## adjust fit based on number of coefficients selected ???
+                
                 tmp.fit	<- calcFourierFit(ws, coeffs=tmp.coef, regs.hist=tmp.hhol, regs.proj=tmp.phol, k=40, h=39)
                 ##tmp.fit	<- calcFourierFit(ws, regs.hist=tmp.hhol, regs.proj=tmp.phol, k=k, h=39)
                 
@@ -473,7 +476,7 @@ for (i in 1:numTestSd) {
 ##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
-##save(vanilla.list, file="042_VanillaFourier_20140326.Rdata")
+##save(vanilla.list, file="042_VanillaFourier_2301_XXXX_20140326.Rdata")
 
 
 

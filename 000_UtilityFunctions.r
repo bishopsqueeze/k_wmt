@@ -533,7 +533,7 @@ calcFourierFit <- function(x, coeffs=NULL, regs.hist=NULL, regs.proj=NULL, k=5, 
     zf	<- fourierf(y, K=k, h=h)
     
     ## isolate relevant fourier coefficients
-    if ( !is.null(coeffs) ) {
+    if ( !is.null(coeffs) & !any(is.na(coeffs)) ) {
         z   <- z[ , coeffs ]
         zf	<- zf[ , coeffs ]
     }
