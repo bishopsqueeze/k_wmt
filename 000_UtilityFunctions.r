@@ -514,7 +514,7 @@ calcFourierVariableSearch <- function(x, regs.hist=NULL, k=6) {
 ##------------------------------------------------------------------
 ## <function> :: calcFourierFit
 ##------------------------------------------------------------------
-calcFourierFit <- function(x, regs.hist=NULL, regs.proj=NULL, k=5, h=39) {
+calcFourierFit <- function(x, coeffs=NULL, regs.hist=NULL, regs.proj=NULL, k=5, h=39) {
 	
 	## do a box-cox transformation if all x > 0
 	if ( any(x < 0) ) {
@@ -524,14 +524,19 @@ calcFourierFit <- function(x, regs.hist=NULL, regs.proj=NULL, k=5, h=39) {
 		lambda	<- BoxCox.lambda(x, method="guerrero", lower=0, upper=1)
 		x	    <- BoxCox(x, lambda)
 	}
-	
+    
 	## define the timeseries
     y   <- ts(x, start=c(2010,5), freq=365.25/7)
-	#y   <- ts(x, start=c(2010,5), freq=52)
+	
+    ## compute a complete set of orders
+    z 	<- fourier(y, K=k)
+    zf	<- fourierf(y, K=k, h=h)
     
-	## compute the fourier series
-	z 	<- fourier(y, K=k)
-	zf	<- fourierf(y, K=k, h=h)
+    ## isolate relevant fourier coefficients
+    if ( !is.null(coeffs) ) {
+        z   <- z[ , coeffs ]
+        zf	<- zf[ , coeffs ]
+    }
     
 	## compute the fit; dependent on the presence/absence of regressors
 	
@@ -541,7 +546,7 @@ calcFourierFit <- function(x, regs.hist=NULL, regs.proj=NULL, k=5, h=39) {
 		fitted		<- InvBoxCox(as.vector(fitted(fit)), lambda)
 		fc 			<- forecast(fit, xreg=zf, h=h)
 		forecast	<- InvBoxCox(as.vector(fc$mean), lambda)
-        ## regressors
+    ## regressors
 	} else {
         fit         <- auto.arima(y, xreg=cbind(z,regs.hist), seasonal=FALSE, approximation=TRUE, allowdrift=TRUE, trace=TRUE)
 		fitted		<- InvBoxCox(as.vector(fitted(fit)), lambda)

@@ -28,14 +28,13 @@ wd	<- getwd()
 ##------------------------------------------------------------------
 ## Load data
 ##------------------------------------------------------------------
-load("005_walmartCombinedData_20140314.Rdata")          ## raw data
-load("040.01_FourierRegressionSearch_20140314.Rdata")   ## optimal fourier orders
-
+load("005_walmartCombinedData_20140314.Rdata")                              ## raw data
+load("./OrderSearch/040_FourierOrderSearch_Only40_All_20140326.Rdata")      ## optimal fourier coefficients
 
 ##------------------------------------------------------------------
 ## Source Utilities
 ##------------------------------------------------------------------
-source("/Users/alexstephens/Development/kaggle/walmart/code/999_UtilityFunctions.r")
+source("/Users/alexstephens/Development/kaggle/walmart/k_wmt/000_UtilityFunctions.r")
 
 ##------------------------------------------------------------------
 ## Constants
@@ -72,19 +71,23 @@ minObs          <- 100
 ##------------------------------------------------------------------
 ## Process the fit file
 ##------------------------------------------------------------------
-order.list  <- list()
-fit.names   <- names(fourierRegression.list)
+orderCoef.list  <- list()
+fit.names       <- names(orders.list)
 
 for (i in 1:length(fit.names)) {
 
     ## get the AIC data, but set a low-limit to the order == 5
     tmp.name    <- fit.names[i]
-    tmp.res     <- fourierRegression.list[[tmp.name]]$res
-    tmp.res     <- tmp.res[ tmp.res[,1] >=5 , ]
+    tmp.coef    <- orders.list[[tmp.name]]$coef
+    #tmp.res     <- orders.list[[tmp.name]]$res
+    #tmp.res     <- tmp.res[ tmp.res[,1] >=5 , ]
     
     ## then pull off the order with the minimum in-sample AICc
-    tmp.k       <- tmp.res[ which(tmp.res[,2] == min(tmp.res[,2])) , 1][1]
-    order.list[[tmp.name]]$k    <- tmp.k
+    #tmp.k       <- tmp.res[ which(tmp.res[,2] == min(tmp.res[,2])) , 1][1]
+    #tmp.k                           <- tmp.res[2]
+    #orderCoef.list[[tmp.name]]$k    <- tmp.k
+    orderCoef.list[[tmp.name]]$coef <- names(tmp.coef)[2:length(tmp.coef)]
+    
 }
 
 
@@ -114,6 +117,9 @@ for (i in 1:numTestSd) {
 	tmp.hist	<- tmp.dat[ (tmp.tr_fl == 1) , ]			## historical data
 	tmp.proj	<- tmp.dat[ (tmp.tr_fl == 0) , ]			## projection data
 
+    ## grab fourier coefficients
+    tmp.coef    <- orderCoef.list[[tmp.sdName]]$coef
+    
 	## number of original observations
 	num.obs		<- sum(!is.na(tmp.hist$weekly_sales))
 
@@ -127,7 +133,7 @@ for (i in 1:numTestSd) {
 	##------------------------------------------------------------------
 	if ( (tmp.store > 0) & (tmp.dept > 0) ) {
 		if ((num.obs > minObs) & (tmp.sd != "43_28")) {
-            if ( !is.null(order.list[[tmp.sdName]]) ) {
+            if ( !is.null(orderCoef.list[[tmp.sdName]]) ) {
 
                 ## report progress
                 cat("Processing: SD = ", tmp.sdName, "\n")
@@ -136,8 +142,8 @@ for (i in 1:numTestSd) {
                 ws	<- tmp.dat$ws.min10[ (tmp.tr_fl == 1) ]     ## min10 because of BoxCox transform
 
                 ## grab the fourier order based on the order search
-                k   <- order.list[[tmp.sdName]]$k
-                #k   <- max(20, order.list[[tmp.sdName]]$k)      ## force minimum fit of order 20
+                #k   <- orderCoef.list[[tmp.sdName]]$k
+                #k   <- max(20, orderCoef.list[[tmp.sdName]]$k)      ## force minimum fit of order 20
                 
                 ##------------------------------------------------------------------
                 ## Questionable whether or not the standard set of holiday flags
@@ -153,7 +159,7 @@ for (i in 1:numTestSd) {
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("sb_m00","va_m00","ea_m01","ea_m00","ha_m01","ha_m00","xm_m02","xm_m01")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("sb_m00","va_m00","ea_m01","ea_m00","ha_m01","ha_m00","xm_m02","xm_m01")]
                     ## order constraints
-                    ##k            <- max(6,order.list[[tmp.sdName]]$k)
+                    ##k            <- max(6,orderCoef.list[[tmp.sdName]]$k)
                 ##------------------------------------------------------------------
                 ## [+][d02] - s22/s23/s29/s39
                 ##------------------------------------------------------------------
@@ -439,8 +445,9 @@ for (i in 1:numTestSd) {
                 ##------------------------------------------------------------------
                 ## compute a basic stl projection
                 ##------------------------------------------------------------------
-                tmp.fit	<- calcFourierFit(ws, regs.hist=tmp.hhol, regs.proj=tmp.phol, k=k, h=39)
-            
+                tmp.fit	<- calcFourierFit(ws, coeffs=tmp.coef, regs.hist=tmp.hhol, regs.proj=tmp.phol, k=40, h=39)
+                ##tmp.fit	<- calcFourierFit(ws, regs.hist=tmp.hhol, regs.proj=tmp.phol, k=k, h=39)
+                
                 ##------------------------------------------------------------------
                 ## plot the results
                 ##------------------------------------------------------------------
@@ -466,7 +473,7 @@ for (i in 1:numTestSd) {
 ##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
-save(vanilla.list, file="041.01_VanillaFourier_20140326.Rdata")
+##save(vanilla.list, file="042_VanillaFourier_20140326.Rdata")
 
 
 
