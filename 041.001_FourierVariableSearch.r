@@ -69,6 +69,8 @@ numTestSd		<- uniq.list$numTestSd
 numWeek         <- 52
 minTime         <- 5
 maxTime         <- 186
+minOrder        <- 5
+maxOrder        <- 40
 
 ## minimum requirements for a fit
 minObs          <- 100
@@ -106,16 +108,17 @@ fourierRegressionGlm.list <- foreach(i=1:numTestSd) %dopar% {
             ws      <- tmp.hist$ws.min10
             
             ## define the regressors
-            reg.dates   <- holiday.df[ (tmp.tr_fl == 1), c(grep("ea_", names(holiday.df)), grep("mo_",names(holiday.df))) ]
-            reg.econ    <- tmp.dat[ (tmp.tr_fl == 1), c(19:23) ]
+            #reg.dates   <- holiday.df[ (tmp.tr_fl == 1), c(grep("ea_", names(holiday.df)), grep("mo_",names(holiday.df))) ]
+            #reg.econ    <- tmp.dat[ (tmp.tr_fl == 1), c(19:23) ]
             
             # weight options
-            #tmp.wgt     <- rep(1, length(ws))
+            tmp.wgt     <- rep(1, length(ws))
             #tmp.wgt     <- tmp.wgt[ (tmp.tr_fl == 1) ]
             #tmp.wgt     <- exp(-((5:147)-147)^2/(52^2))
             
             ## perform the fit
-            tmp.fit     <- calcGlmVariableSearch(ws, regs.hist=cbind(reg.dates, reg.econ), min.order=5, max.order=40, min.boxcox=0, max.boxcox=1, wgt=NULL)
+            tmp.fit     <- calcGlmVariableSearch(ws, regs.hist=NULL, min.order=minOrder, max.order=maxOrder, min.boxcox=0, max.boxcox=1, wgt=tmp.wgt)
+            #tmp.fit     <- calcGlmVariableSearch(ws, regs.hist=cbind(reg.dates, reg.econ), min.order=minOrder, max.order=maxOrder, min.boxcox=0, max.boxcox=1, wgt=NULL)
             
 		} else {
 		
@@ -127,19 +130,23 @@ fourierRegressionGlm.list <- foreach(i=1:numTestSd) %dopar% {
 }
 
 
+## add names to the list
+names(fourierRegressionGlm.list) <- paste("SD_",uniqTestSd,sep="")
+
+
 ##------------------------------------------------------------------
 ## Generate a table of the AIC results
 ##------------------------------------------------------------------
 
 ## define and load the matrix
-aic.mat <- matrix(, nrow=length(fourierRegressionGlm.list), ncol=30-5+1)
+aic.mat <- matrix(, nrow=length(fourierRegressionGlm.list), ncol=maxOrder-minOrder+1)
 for (i in 1:nrow(aic.mat)) {
     if ( !is.null(fourierRegressionGlm.list[[i]]$res[,2]) ) {
         aic.mat[i, ] <- fourierRegressionGlm.list[[i]]$res[,2]
     }
 }
 rownames(aic.mat) <- names(fourierRegressionGlm.list)
-colnames(aic.mat) <- paste("X",seq(5,30,1),sep="")
+colnames(aic.mat) <- paste("X",seq(minOrder,maxOrder,1),sep="")
 
 ## add store/dept/k columns
 aic.mat <- cbind(   aic.mat,
@@ -159,7 +166,7 @@ dept.aic <- tapply(aic.mat[,c("k")], aic.mat[,c("dept")], function(x){ceiling(me
 ##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
-##save(fourierVariable.list, file="041.001_GlmVariableSearch_20140328.Rdata")
+save(fourierRegressionGlm.list, file="041.001_GlmVariableSearch_Min5_Max40_FactorsNone_HolidaysNone_WeightEqual_20140329.Rdata")
 
 
 
