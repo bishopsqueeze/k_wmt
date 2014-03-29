@@ -432,16 +432,16 @@ calcFourierOrder <- function(x, max.order=20, h=39) {
 ##########################################################################################
 
 ##------------------------------------------------------------------
-## <function> :: calcFourierOrderSearch
+## <function> :: calcGlmOrderSearch
 ##------------------------------------------------------------------
-calcFourierOrderSearch <- function(x, min.order=5, max.order=30) {
+calcGlmOrderSearch <- function(x, min.order=5, max.order=30, min.boxcox=0, max.boxcox=1) {
 	
 	## do a box-cox transformation if all x > 0
 	if ( any(x < 0) ) {
 		orig.x <- x
 	} else {
 		orig.x  <- x
-		lambda	<- BoxCox.lambda(x, method="guerrero", lower=0, upper=1)
+		lambda	<- BoxCox.lambda(x, method="guerrero", lower=min.boxcox, upper=max.boxcox)
 		x	    <- BoxCox(x, lambda)
 	}
 	
@@ -457,9 +457,8 @@ calcFourierOrderSearch <- function(x, min.order=5, max.order=30) {
         ## generate a data frame for the fit
         fit.df  <- data.frame(x=x, fourier(y, K=i))
         
-        ## compute the arima fit
+        ## do a simple linear regression of the fourier terms
         fit2     <- glm(x ~ . , data=fit.df, family="gaussian")
-        #fit2    <- stepAIC(fit, direction="backward", trace=1)
 
         ## record results
         bestmat[(i-min.order+1),] <- c(i, fit2$aic)
@@ -468,7 +467,7 @@ calcFourierOrderSearch <- function(x, min.order=5, max.order=30) {
     ## identify the order that minimized the aicc & refit
     k       <- bestmat[ which( (bestmat[,2] == min(bestmat[,2])) ) , 1][1]
     fit.df  <- data.frame(x=x, fourier(y, K=k))
-    bestfit <- stepAIC(glm(x ~ . , data=fit.df, family="gaussian"), direction="backward", trace=1)
+    bestfit <- glm(x ~ . , data=fit.df, family="gaussian")
     fitted	<- InvBoxCox(as.vector(fitted(bestfit)), lambda)
     
 	## return the original vector, the in-sample, out-of-sample, and box-cox parameter
@@ -476,6 +475,14 @@ calcFourierOrderSearch <- function(x, min.order=5, max.order=30) {
 }
 
 ##########################################################################################
+
+
+
+
+
+
+
+
 
 ##------------------------------------------------------------------
 ## <function> :: calcFourierVariableSearch
@@ -543,8 +550,10 @@ calcFourierFit <- function(x, coeffs=NULL, regs.hist=NULL, regs.proj=NULL, k=5, 
     ## isolate relevant fourier coefficients
     if ( !is.null(coeffs)) {
         if ( !any(is.na(coeffs)) ) {
-            z   <- z[ , coeffs ]
-            zf	<- zf[ , coeffs ]
+            if ( length(which(colnames(z) %in% coeffs)) > 0 ) {
+                z   <- z[ , coeffs ]
+                zf	<- zf[ , coeffs ]
+            }
         }
     }
 	
@@ -579,7 +588,7 @@ calcFourierFit <- function(x, coeffs=NULL, regs.hist=NULL, regs.proj=NULL, k=5, 
 ##------------------------------------------------------------------
 ## <function> :: calcFourierNoArima
 ##------------------------------------------------------------------
-calcFourierNoArima <- function(x, coeffs=NULL, regs.hist=NULL, regs.proj=NULL, k=5, h=39) {
+calcFourierNoArima <- function(x, coeffs=NULL, regs.hist=NULL, regs.proj=NULL, wgt=NULL, k=40, h=39) {
 	
 	## do a box-cox transformation if all x > 0
 	if ( any(x < 0) ) {
@@ -600,28 +609,30 @@ calcFourierNoArima <- function(x, coeffs=NULL, regs.hist=NULL, regs.proj=NULL, k
     ## isolate relevant fourier coefficients
     if ( !is.null(coeffs)) {
         if ( !any(is.na(coeffs)) ) {
-            z   <- z[ , coeffs ]
-            zf	<- zf[ , coeffs ]
+            if ( length(which(colnames(z) %in% coeffs)) > 0 ) {
+                z   <- z[ , coeffs ]
+                zf	<- zf[ , coeffs ]
+            }
         }
     }
     
     ## append regressors if they exist
 	if ( !is.null(regs.hist) ) {
         fit.df      <- data.frame(x=x, regs.hist, z)
-        fit         <- glm(x ~ . , data=fit.df, weights=wgt, family="gaussian")
-        fit2        <- stepAIC(fit, direction="backward", trace=2)
+        fit2         <- glm(x ~ . , data=fit.df, weights=wgt, family="gaussian")
+        #fit2        <- stepAIC(fit, direction="backward", trace=2)
         fitted      <- InvBoxCox(as.vector(fitted(fit2)), lambda)
         proj.df     <- data.frame(regs.proj, zf)
         fc          <- predict(fit2, newdata=proj.df)
-        forecast    <- as.vector(InvBoxBox(fc, lambda=lambda))
+        forecast    <- as.vector(InvBoxCox(fc, lambda=lambda))
     } else {
         fit.df      <- data.frame(x=x, z)
-        fit         <- glm(x ~ . , data=fit.df, weights=wgt, family="gaussian")
-        fit2        <- stepAIC(fit, direction="backward", trace=2)
+        fit2        <- glm(x ~ . , data=fit.df, weights=wgt, family="gaussian")
+        #fit2        <- stepAIC(fit, direction="backward", trace=2)
         fitted      <- InvBoxCox(as.vector(fitted(fit2)), lambda)
         proj.df     <- data.frame(zf)
         fc          <- predict(fit2, newdata=proj.df)
-        forecast    <- as.vector(InvBoxBox(fc, lambda=lambda))
+        forecast    <- as.vector(InvBoxCox(fc, lambda=lambda))
     }
 
 	## compute the mean absolute error
@@ -632,7 +643,7 @@ calcFourierNoArima <- function(x, coeffs=NULL, regs.hist=NULL, regs.proj=NULL, k
 	}
 	
 	## return the original vector, the in-sample, out-of-sample, and box-cox parameter
-	return(list(x=orig.x, fitted=fitted, forecast=forecast, lambda=lambda, mae=mae, k=k, coef=coefficients(fit2), aic=fit2$aic)))
+	return(list(x=orig.x, fitted=fitted, forecast=forecast, lambda=lambda, mae=mae, k=k, coef=coefficients(fit2), aic=fit2$aic))
 }
 
 

@@ -12,7 +12,14 @@ options(warn=1)
 ## Load libraries
 ##------------------------------------------------------------------
 library(forecast)
+library(foreach)
+library(doMC)
 library(MASS)
+
+##------------------------------------------------------------------
+## Register the clusters
+##------------------------------------------------------------------
+registerDoMC(4)
 
 ##------------------------------------------------------------------
 ## Clear the workspace
@@ -70,16 +77,9 @@ maxTime         <- 186
 minObs          <- 50
 
 ##------------------------------------------------------------------
-## Main
-##------------------------------------------------------------------
-
-## store results in a list
-fourierRegression.list		<- list()
-
-##------------------------------------------------------------------
 ## Loop over all of the test s/d combos and compute the forecast
 ##------------------------------------------------------------------
-for (i in 1:numTestSd) {
+fourierRegressionGlm.list <- foreach(i=1:numTestSd) %dopar% {
 
     ## grab s/d parameters from the clean.list()
 	tmp.sd		<- as.character(droplevels(uniqTestSd[i]))
@@ -99,48 +99,28 @@ for (i in 1:numTestSd) {
 	## number of original observations
 	num.obs		<- sum(!is.na(tmp.hist$weekly_sales))
 
-	## define a filename for the plot
-	tmp.folder		<- paste(wd, "/FourierRegressionOrderOnly40_0326/", substr(tmp.sd,1,2), "/", sep="")
-	tmp.filename	<- paste(tmp.folder, tmp.sdName, ".FourierRegressionOrder.pdf", sep="")
-	dir.create(tmp.folder, showWarnings = FALSE)
-
-	## report progress
-	cat("Processing: SD = ", tmp.sdName, "\n")
-
 	##------------------------------------------------------------------
-	## basic  projection
+	## compute a glm-based order search of fourier series
 	##------------------------------------------------------------------
-	if ( (tmp.store == 15) & (tmp.dept >= 80) ) {
+	if ( (tmp.store > 0) & (tmp.dept > 0) ) {
 		if (num.obs >= minObs) {
             
-            ## grab the weekly sales data (floored at $10 b/c of box-cox)
             ws      <- tmp.hist$ws.min10
-            tmp.fit <- calcFourierOrderSearch(ws, min.order=40, max.order=40)
-	
-			## plot the results
-			pdf(tmp.filename)
-                plot(c(tmp.fit$x), type="n", main=tmp.sdName, xlab="Time Index", ylab="Weekly Sales")  ## null plot
-                points(tmp.fit$x, type="b", pch=20, col="grey", lwd=2)
-				#points(c(tmp.fit$fitted, tmp.fit$forecast), type="b", pch=1, col="red")
-                points(c(tmp.fit$fitted), type="b", pch=1, col="red")
-            dev.off()
-			
-			## save the results
-            fourierRegression.list[[tmp.sdName]] <- tmp.fit
+            tmp.fit <- calcGlmOrderSearch(ws, min.order=5, max.order=30, min.boxcox=0, max.boxcox=1)
             
 		} else {
             
-			## will hit if num.obs <= 50
-			fourierRegression.list[[tmp.sdName]] <- NULL
+            tmp.fit <- NULL
             
 		}
 	}
+    return(tmp.fit)
 }
 
 ##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
-save(fourierRegression.list, file="040_FourierOrderSearch_Only40_20140326.Rdata")
+##save(fourierRegression.list, file="040_FourierOrderSearch_Only40_20140326.Rdata")
 
 
 

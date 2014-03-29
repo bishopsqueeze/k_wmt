@@ -107,7 +107,7 @@ for (i in 1:numTestSd) {
 	##------------------------------------------------------------------
 	## basic  projection
 	##------------------------------------------------------------------
-	if ( (tmp.store > 0) & (tmp.dept > 0) ) {
+	if ( (tmp.store == 25) & (tmp.dept > 14) ) {
 		if (num.obs >= minObs) {
             
             ## grab the weekly sales data (floored at $10 b/c of box-cox)
@@ -147,7 +147,7 @@ for (i in 1:numTestSd) {
 ##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
-save(fourierVariable.list, file="040.01_FourierVariableSearch_20140328.Rdata")
+save(fourierVariable.list, file="040.01_FourierVariableSearch_2515_2598_20140328.Rdata")
 
 
 
