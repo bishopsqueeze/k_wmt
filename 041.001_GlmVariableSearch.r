@@ -108,18 +108,27 @@ fourierRegressionGlm.list <- foreach(i=1:numTestSd) %dopar% {
             ws      <- tmp.hist$ws.min10
             
             ## define the regressors
-            #reg.dates   <- holiday.df[ (tmp.tr_fl == 1), c(grep("ea_", names(holiday.df)), grep("mo_",names(holiday.df))) ]
+            reg.dates   <- holiday.df[ (tmp.tr_fl == 1), c(grep("ea_", names(holiday.df)), grep("mo_",names(holiday.df))) ]
             reg.econ    <- tmp.dat[ (tmp.tr_fl == 1), c(19:23) ]
             
-            # weight options
+            ## weight options
             tmp.wgt     <- rep(1, length(ws))
             #tmp.wgt     <- tmp.wgt[ (tmp.tr_fl == 1) ]
             #tmp.wgt     <- exp(-((5:147)-147)^2/(52^2))
             
-            ## perform the fit
-            #tmp.fit     <- calcGlmVariableSearch(ws, regs.hist=NULL, min.order=minOrder, max.order=maxOrder, min.boxcox=0, max.boxcox=1, wgt=tmp.wgt) ##Min5_Max40_FactorsNone_HolidaysNone_WeightEqual
+            ## perform the fits
+            
+            ## Min5_Max40_FactorsNone_HolidaysNone_WeightEqual
+            ##tmp.fit     <- calcGlmVariableSearch(ws, regs.hist=NULL, min.order=minOrder, max.order=maxOrder, min.boxcox=0, max.boxcox=1, wgt=tmp.wgt)
+            
+            ## Min5_Max40_FactorsEcon_HolidaysNone_WeightEqual
+            ##tmp.fit     <- calcGlmVariableSearch(ws, regs.hist=reg.econ, min.order=minOrder, max.order=maxOrder, min.boxcox=0, max.boxcox=1, wgt=tmp.wgt)
+            
+            ## Min5_Max40_FactorsEcon_HolidaysNone_WeightExp
             tmp.fit     <- calcGlmVariableSearch(ws, regs.hist=reg.econ, min.order=minOrder, max.order=maxOrder, min.boxcox=0, max.boxcox=1, wgt=tmp.wgt)
-            #tmp.fit     <- calcGlmVariableSearch(ws, regs.hist=cbind(reg.dates, reg.econ), min.order=minOrder, max.order=maxOrder, min.boxcox=0, max.boxcox=1, wgt=NULL)
+
+            ## Min5_Max40_FactorsEcon_HolidaysEaMo_WeightEqual
+            ##tmp.fit     <- calcGlmVariableSearch(ws, regs.hist=cbind(reg.dates, reg.econ), min.order=minOrder, max.order=maxOrder, min.boxcox=0, max.boxcox=1, wgt=tmp.wgt)
             
 		} else {
 		
@@ -167,7 +176,7 @@ dept.aic <- tapply(aic.mat[,c("k")], aic.mat[,c("dept")], function(x){ceiling(me
 ##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
-save(aic.mat, dept.aic, fourierRegressionGlm.list, file="041.001_GlmVariableSearch_Min5_Max40_FactorsEcon_HolidaysNone_WeightEqual_20140329.Rdata")
+save(aic.mat, dept.aic, fourierRegressionGlm.list, file="041.001_GlmVariableSearch_Min5_Max40_FactorsEcon_HolidaysNone_WeightExp_20140329.Rdata")
 
 
 
