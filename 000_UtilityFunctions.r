@@ -434,7 +434,7 @@ calcFourierOrder <- function(x, max.order=20, h=39) {
 ##------------------------------------------------------------------
 ## <function> :: calcGlmOrderSearch
 ##------------------------------------------------------------------
-calcGlmOrderSearch <- function(x, min.order=5, max.order=30, min.boxcox=0, max.boxcox=1) {
+calcGlmOrderSearch <- function(x, min.order=5, max.order=30, min.boxcox=0, max.boxcox=1, weights=NULL) {
 	
 	## do a box-cox transformation if all x > 0
 	if ( any(x < 0) ) {
@@ -458,7 +458,7 @@ calcGlmOrderSearch <- function(x, min.order=5, max.order=30, min.boxcox=0, max.b
         fit.df  <- data.frame(x=x, fourier(y, K=i))
         
         ## do a simple linear regression of the fourier terms
-        fit2     <- glm(x ~ . , data=fit.df, family="gaussian")
+        fit2     <- glm(x ~ . , data=fit.df, weights=weights, family="gaussian")
 
         ## record results
         bestmat[(i-min.order+1),] <- c(i, fit2$aic)
@@ -467,7 +467,7 @@ calcGlmOrderSearch <- function(x, min.order=5, max.order=30, min.boxcox=0, max.b
     ## identify the order that minimized the aicc & refit
     k       <- bestmat[ which( (bestmat[,2] == min(bestmat[,2])) ) , 1][1]
     fit.df  <- data.frame(x=x, fourier(y, K=k))
-    bestfit <- glm(x ~ . , data=fit.df, family="gaussian")
+    bestfit <- glm(x ~ . , data=fit.df, weights=weights, family="gaussian")
     fitted	<- InvBoxCox(as.vector(fitted(bestfit)), lambda)
     
 	## return the original vector, the in-sample, out-of-sample, and box-cox parameter
@@ -476,13 +476,50 @@ calcGlmOrderSearch <- function(x, min.order=5, max.order=30, min.boxcox=0, max.b
 
 ##########################################################################################
 
+##------------------------------------------------------------------
+## <function> :: calcRqOrderSearch
+##------------------------------------------------------------------
+calcRqOrderSearch <- function(x, min.order=5, max.order=30, min.boxcox=0, max.boxcox=1, weights=NULL) {
+	
+	## do a box-cox transformation if all x > 0
+	if ( any(x < 0) ) {
+		orig.x <- x
+	} else {
+		orig.x  <- x
+		lambda	<- BoxCox.lambda(x, method="guerrero", lower=min.boxcox, upper=max.boxcox)
+		x	    <- BoxCox(x, lambda)
+	}
+	
+	## define the timeseries
+    y   <- ts(x, start=c(2010,5), freq=365.25/7)
+    
+    ## define a placeholder matrix for results
+    bestmat <- matrix(, nrow=(max.order-min.order+1), ncol=2)
+    
+    ## compute even orders only
+    for (i in seq(from=min.order, to=max.order, by=1)) {
+        
+        ## generate a data frame for the fit
+        fit.df  <- data.frame(x=x, fourier(y, K=i))
+        
+        ## do a simple linear regression of the fourier terms
+        fit2     <- rq(x ~ . , data=fit.df, tau=0.50, weights=weights)
+        
+        ## record results
+        bestmat[(i-min.order+1),] <- c(i, fit2$aic)
+    }
+    
+    ## identify the order that minimized the aicc & refit
+    k       <- bestmat[ which( (bestmat[,2] == min(bestmat[,2])) ) , 1][1]
+    fit.df  <- data.frame(x=x, fourier(y, K=k))
+    bestfit <- rq(x ~ . , data=fit.df, tau=0.50, weights=weights)
+    fitted	<- InvBoxCox(as.vector(fitted(bestfit)), lambda)
+    
+	## return the original vector, the in-sample, out-of-sample, and box-cox parameter
+	return(list(x=orig.x, fitted=fitted, lambda=lambda, k=k, res=bestmat, coef=coefficients(bestfit), aic=bestfit$aic))
+}
 
-
-
-
-
-
-
+##########################################################################################
 
 ##------------------------------------------------------------------
 ## <function> :: calcFourierVariableSearch

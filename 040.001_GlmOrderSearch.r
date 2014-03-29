@@ -117,10 +117,13 @@ fourierRegressionGlm.list <- foreach(i=1:numTestSd) %dopar% {
     return(tmp.fit)
 }
 
+## add names to the list
+names(fourierRegressionGlm.list) <- paste("SD_",uniqTestSd,sep="")
+
 ##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
-##save(fourierRegression.list, file="040_FourierOrderSearch_Only40_20140326.Rdata")
+save(fourierRegressionGlm.list, file="040.001_GlmOrderSearch_20140326.Rdata")
 
 
 
