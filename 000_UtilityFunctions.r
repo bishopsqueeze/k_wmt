@@ -434,7 +434,7 @@ calcFourierOrder <- function(x, max.order=20, h=39) {
 ##------------------------------------------------------------------
 ## <function> :: calcGlmOrderSearch
 ##------------------------------------------------------------------
-calcGlmOrderSearch <- function(x, min.order=5, max.order=30, min.boxcox=0, max.boxcox=1, weights=NULL) {
+calcGlmOrderSearch <- function(x, min.order=5, max.order=30, min.boxcox=0, max.boxcox=1, wgt=NULL) {
 	
 	## do a box-cox transformation if all x > 0
 	if ( any(x < 0) ) {
@@ -454,11 +454,11 @@ calcGlmOrderSearch <- function(x, min.order=5, max.order=30, min.boxcox=0, max.b
     ## compute even orders only
     for (i in seq(from=min.order, to=max.order, by=1)) {
     
-        ## generate a data frame for the fit
-        fit.df  <- data.frame(x=x, fourier(y, K=i))
+        ## generate a data frame for the fit: x ~ t + fourier(k)
+        fit.df  <- data.frame(x=x, t=1:length(x), fourier(y, K=i))
         
         ## do a simple linear regression of the fourier terms
-        fit2     <- glm(x ~ . , data=fit.df, weights=weights, family="gaussian")
+        fit2     <- glm(x ~ . , data=fit.df, weights=wgt, family="gaussian")
 
         ## record results
         bestmat[(i-min.order+1),] <- c(i, fit2$aic)
@@ -466,20 +466,22 @@ calcGlmOrderSearch <- function(x, min.order=5, max.order=30, min.boxcox=0, max.b
     
     ## identify the order that minimized the aicc & refit
     k       <- bestmat[ which( (bestmat[,2] == min(bestmat[,2])) ) , 1][1]
-    fit.df  <- data.frame(x=x, fourier(y, K=k))
-    bestfit <- glm(x ~ . , data=fit.df, weights=weights, family="gaussian")
+    fit.df  <- data.frame(x=x, t=1:length(x), fourier(y, K=k))
+    bestfit <- glm(x ~ . , data=fit.df, weights=wgt, family="gaussian")
     fitted	<- InvBoxCox(as.vector(fitted(bestfit)), lambda)
+    fit.sum <- summary(bestfit)
     
 	## return the original vector, the in-sample, out-of-sample, and box-cox parameter
-	return(list(x=orig.x, fitted=fitted, lambda=lambda, k=k, res=bestmat, coef=coefficients(bestfit), aic=bestfit$aic))
+	return(list(x=orig.x, fitted=fitted, lambda=lambda, k=k, res=bestmat, aic=bestfit$aic,
+                coef=coefficients(bestfit), sderr=fit.sum$coefficients[,2], tval=fit.sum$coefficients[,3]))
 }
 
 ##########################################################################################
 
 ##------------------------------------------------------------------
-## <function> :: calcRqOrderSearch
+## <function> :: calcGlmVariableSearch
 ##------------------------------------------------------------------
-calcRqOrderSearch <- function(x, min.order=5, max.order=30, min.boxcox=0, max.boxcox=1, weights=NULL) {
+calcGlmVariableSearch <- function(x, regs.hist=NULL, min.order=5, max.order=30, min.boxcox=0, max.boxcox=1, wgt=NULL) {
 	
 	## do a box-cox transformation if all x > 0
 	if ( any(x < 0) ) {
@@ -499,11 +501,15 @@ calcRqOrderSearch <- function(x, min.order=5, max.order=30, min.boxcox=0, max.bo
     ## compute even orders only
     for (i in seq(from=min.order, to=max.order, by=1)) {
         
-        ## generate a data frame for the fit
-        fit.df  <- data.frame(x=x, fourier(y, K=i))
+        ## generate a data frame for the fit: x ~ t + fourier(k) + regressors
+        if ( !is.null(regs.hist) ) {
+            fit.df  <- data.frame(x=x, t=1:length(x), fourier(y, K=i), regs.hist)
+        } else {
+            fit.df  <- data.frame(x=x, t=1:length(x), fourier(y, K=i))
+        }
         
         ## do a simple linear regression of the fourier terms
-        fit2     <- rq(x ~ . , data=fit.df, tau=0.50, weights=weights)
+        fit2     <- glm(x ~ . , data=fit.df, weights=wgt, family="gaussian")
         
         ## record results
         bestmat[(i-min.order+1),] <- c(i, fit2$aic)
@@ -511,55 +517,22 @@ calcRqOrderSearch <- function(x, min.order=5, max.order=30, min.boxcox=0, max.bo
     
     ## identify the order that minimized the aicc & refit
     k       <- bestmat[ which( (bestmat[,2] == min(bestmat[,2])) ) , 1][1]
-    fit.df  <- data.frame(x=x, fourier(y, K=k))
-    bestfit <- rq(x ~ . , data=fit.df, tau=0.50, weights=weights)
-    fitted	<- InvBoxCox(as.vector(fitted(bestfit)), lambda)
     
-	## return the original vector, the in-sample, out-of-sample, and box-cox parameter
-	return(list(x=orig.x, fitted=fitted, lambda=lambda, k=k, res=bestmat, coef=coefficients(bestfit), aic=bestfit$aic))
-}
-
-##########################################################################################
-
-##------------------------------------------------------------------
-## <function> :: calcFourierVariableSearch
-##------------------------------------------------------------------
-calcFourierVariableSearch <- function(x, wgt=NULL, regs.hist=NULL, k=6) {
-	
-	## do a box-cox transformation if all x > 0
-	if ( any(x < 0) ) {
-		orig.x <- x
-	} else {
-		orig.x  <- x
-		lambda	<- BoxCox.lambda(x, method="guerrero", lower=0, upper=1)
-		x	    <- BoxCox(x, lambda)
-	}
-	
-	## define the timeseries
-    y   <- ts(x, start=c(2010,5), freq=365.25/7)
-
-    ## compute a complete set of orders
-    z 	<- fourier(y, K=k)
-    
-	## append regressors if they exist
-	if ( !is.null(regs.hist) ) {
-        fit.df      <- data.frame(x=x, regs.hist, z)
-        fit         <- glm(x ~ . , data=fit.df, weights=wgt, family="gaussian")
-        fit2        <- stepAIC(fit, direction="backward", trace=2)
-        fitted      <- InvBoxCox(as.vector(fitted(fit2)), lambda)
+    ## generate a data frame for the fit: x ~ t + fourier(k) + regressors
+    if ( !is.null(regs.hist) ) {
+        fit.df  <- data.frame(x=x, t=1:length(x), fourier(y, K=k), regs.hist)
     } else {
-        fit.df      <- data.frame(x=x, z)
-        fit         <- glm(x ~ . , data=fit.df, weights=wgt, family="gaussian")
-        fit2        <- stepAIC(fit, direction="backward", trace=2)
-        fitted      <- InvBoxCox(as.vector(fitted(fit2)), lambda)
+        fit.df  <- data.frame(x=x, t=1:length(x), fourier(y, K=k))
     }
+    bestfit <- glm(x ~ . , data=fit.df, weights=wgt, family="gaussian")
+    fitted	<- InvBoxCox(as.vector(fitted(bestfit)), lambda)
+    fit.sum <- summary(bestfit)
     
 	## return the original vector, the in-sample, out-of-sample, and box-cox parameter
-	return(list(x=orig.x, fitted=fitted, lambda=lambda, k=k, coef=coefficients(fit2), aic=fit2$aic))
+	return(list(x=orig.x, fitted=fitted, lambda=lambda, k=k, res=bestmat, aic=bestfit$aic,
+                coef=coefficients(bestfit), sderr=fit.sum$coefficients[,2], tval=fit.sum$coefficients[,3]))
+
 }
-
-
-
 
 ##########################################################################################
 

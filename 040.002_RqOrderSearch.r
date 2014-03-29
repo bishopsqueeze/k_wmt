@@ -15,6 +15,7 @@ library(forecast)
 library(foreach)
 library(doMC)
 library(MASS)
+library(quantreg)
 
 ##------------------------------------------------------------------
 ## Register the clusters

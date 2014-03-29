@@ -9,7 +9,14 @@ options(warn=1)
 ## Load libraries
 ##------------------------------------------------------------------
 library(forecast)
+library(foreach)
+library(doMC)
 library(MASS)
+
+##------------------------------------------------------------------
+## Register the clusters
+##------------------------------------------------------------------
+registerDoMC(4)
 
 ##------------------------------------------------------------------
 ## Clear the workspace
@@ -25,8 +32,8 @@ wd	<- getwd()
 ##------------------------------------------------------------------
 ## Load data
 ##------------------------------------------------------------------
-load("005_walmartCombinedData_20140314.Rdata")
-#load("040.01_FourierRegressionSearch_20140314.Rdata")   ## optimal fourier orders
+##load("005_walmartCombinedData_20140314.Rdata")
+load("005_walmartCombinedData_20140326.Rdata")
 
 ##------------------------------------------------------------------
 ## Remove superfluous items
@@ -67,16 +74,9 @@ maxTime         <- 186
 minObs          <- 100
 
 ##------------------------------------------------------------------
-## Main
-##------------------------------------------------------------------
-
-## store results in a list
-fourierVariable.list		<- list()
-
-##------------------------------------------------------------------
 ## Loop over all of the test s/d combos and compute the forecast
 ##------------------------------------------------------------------
-for (i in 1:numTestSd) {
+fourierRegressionGlm.list <- foreach(i=1:numTestSd) %dopar% {
 
     ## grab s/d parameters from the clean.list()
 	tmp.sd		<- as.character(droplevels(uniqTestSd[i]))
@@ -96,58 +96,70 @@ for (i in 1:numTestSd) {
 	## number of original observations
 	num.obs		<- sum(!is.na(tmp.hist$weekly_sales))
 
-	## define a filename for the plot
-	tmp.folder		<- paste(wd, "/FourierRegressionOrder_0328/", substr(tmp.sd,4,5), "/", sep="")
-	tmp.filename	<- paste(tmp.folder, tmp.sdName, ".FourierRegressionOrder.pdf", sep="")
-	dir.create(tmp.folder, showWarnings = FALSE)
-
-	## report progress
-	cat("Processing: SD = ", tmp.sdName, "\n")
-
 	##------------------------------------------------------------------
-	## basic  projection
+	## compute a glm-based order search of fourier series
 	##------------------------------------------------------------------
-	if ( (tmp.store == 25) & (tmp.dept > 14) ) {
+	if ( (tmp.store > 0) & (tmp.dept > 0) ) {
 		if (num.obs >= minObs) {
             
             ## grab the weekly sales data (floored at $10 b/c of box-cox)
-            ws      <- tmp.hist$ws.min10[ (tmp.tr_fl == 1) ]
+            ws      <- tmp.hist$ws.min10
             
             ## define the regressors
-            reg.dates   <- holiday.df[ (tmp.tr_fl == 1), c(3, grep("ea_", names(holiday.df)), grep("mo_",names(holiday.df))) ]
-            reg.econ    <- tmp.dat[ (tmp.tr_fl == 1), c(13:16, 19:23) ]
-            tmp.wgt     <- tmp.wgt[ (tmp.tr_fl == 1) ]
+            reg.dates   <- holiday.df[ (tmp.tr_fl == 1), c(grep("ea_", names(holiday.df)), grep("mo_",names(holiday.df))) ]
+            reg.econ    <- tmp.dat[ (tmp.tr_fl == 1), c(19:23) ]
+            
+            # weight options
+            #tmp.wgt     <- rep(1, length(ws))
+            #tmp.wgt     <- tmp.wgt[ (tmp.tr_fl == 1) ]
+            #tmp.wgt     <- exp(-((5:147)-147)^2/(52^2))
             
             ## perform the fit
-            tmp.fit     <- calcFourierVariableSearch(ws, wgt=tmp.wgt, regs.hist=cbind(reg.dates, reg.econ), k=30)
-        
-			## plot the results
-			pdf(tmp.filename)
-                plot(c(tmp.fit$x), type="n", main=tmp.sdName, xlab="Time Index", ylab="Weekly Sales")  ## null plot
-                points(tmp.fit$x, type="b", pch=20, col="grey", lwd=2)
-				#points(c(tmp.fit$fitted, tmp.fit$forecast), type="b", pch=1, col="red")
-                points(c(tmp.fit$fitted), type="b", pch=1, col="red")
-            dev.off()
-			
-			## save the results
-            fourierVariable.list[[tmp.sdName]] <- tmp.fit
-			
+            tmp.fit     <- calcGlmVariableSearch(ws, regs.hist=cbind(reg.dates, reg.econ), min.order=5, max.order=40, min.boxcox=0, max.boxcox=1, wgt=NULL)
+            
 		} else {
 		
-			## will hit if num.obs <= 50
-			fourierVariable.list[[tmp.sdName]] <- NULL
+			tmp.fit <- NULL
 			
 		}
 	}
-    x <- fourierVariable.list[[tmp.sdName]]
-    save(x, file=paste("./VariableSearch/",tmp.sdName,".Rdata",sep=""))
-    
+    return(tmp.fit)
 }
+
+
+##------------------------------------------------------------------
+## Generate a table of the AIC results
+##------------------------------------------------------------------
+
+## define and load the matrix
+aic.mat <- matrix(, nrow=length(fourierRegressionGlm.list), ncol=30-5+1)
+for (i in 1:nrow(aic.mat)) {
+    if ( !is.null(fourierRegressionGlm.list[[i]]$res[,2]) ) {
+        aic.mat[i, ] <- fourierRegressionGlm.list[[i]]$res[,2]
+    }
+}
+rownames(aic.mat) <- names(fourierRegressionGlm.list)
+colnames(aic.mat) <- paste("X",seq(5,30,1),sep="")
+
+## add store/dept/k columns
+aic.mat <- cbind(   aic.mat,
+store=as.numeric(substr(rownames(aic.mat),4,5)),
+dept=as.numeric(substr(rownames(aic.mat),7,8)),
+k=NA
+)
+
+## append the order (k) to the matrix
+aic.mat[ which(rownames(aic.mat) %in% names(unlist(lapply(fourierRegressionGlm.list, function(x){x$k})))), c("k")] <- unlist(lapply(fourierRegressionGlm.list, function(x){x$k}))
+
+##------------------------------------------------------------------
+## Extract department-level average orders
+##------------------------------------------------------------------
+dept.aic <- tapply(aic.mat[,c("k")], aic.mat[,c("dept")], function(x){ceiling(mean(x, na.rm=TRUE))})
 
 ##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
-save(fourierVariable.list, file="040.01_FourierVariableSearch_2515_2598_20140328.Rdata")
+##save(fourierVariable.list, file="041.001_GlmVariableSearch_20140328.Rdata")
 
 
 

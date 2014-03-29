@@ -41,7 +41,7 @@ load("005_walmartCombinedData_20140326.Rdata")
 ##------------------------------------------------------------------
 ## Remove superfluous items
 ##------------------------------------------------------------------
-rm(train, test, comb, sd.list)
+rm(train, test, stores, features, comb, sd.list)
 
 ##------------------------------------------------------------------
 ## Source Utilities
@@ -74,7 +74,7 @@ minTime         <- 5
 maxTime         <- 186
 
 ## minimum requirements for a fit
-minObs          <- 50
+minObs          <- 100
 
 ##------------------------------------------------------------------
 ## Loop over all of the test s/d combos and compute the forecast
@@ -121,9 +121,38 @@ fourierRegressionGlm.list <- foreach(i=1:numTestSd) %dopar% {
 names(fourierRegressionGlm.list) <- paste("SD_",uniqTestSd,sep="")
 
 ##------------------------------------------------------------------
+## Generate a table of the AIC results
+##------------------------------------------------------------------
+
+## define and load the matrix
+aic.mat <- matrix(, nrow=length(fourierRegressionGlm.list), ncol=30-5+1)
+for (i in 1:nrow(aic.mat)) {
+    if ( !is.null(fourierRegressionGlm.list[[i]]$res[,2]) ) {
+        aic.mat[i, ] <- fourierRegressionGlm.list[[i]]$res[,2]
+    }
+}
+rownames(aic.mat) <- names(fourierRegressionGlm.list)
+colnames(aic.mat) <- paste("X",seq(5,30,1),sep="")
+
+## add store/dept/k columns
+aic.mat <- cbind(   aic.mat,
+                    store=as.numeric(substr(rownames(aic.mat),4,5)),
+                    dept=as.numeric(substr(rownames(aic.mat),7,8)),
+                    k=NA
+                )
+
+## append the order (k) to the matrix
+aic.mat[ which(rownames(aic.mat) %in% names(unlist(lapply(fourierRegressionGlm.list, function(x){x$k})))), c("k")] <- unlist(lapply(fourierRegressionGlm.list, function(x){x$k}))
+
+##------------------------------------------------------------------
+## Extract department-level average orders
+##------------------------------------------------------------------
+dept.aic <- tapply(aic.mat[,c("k")], aic.mat[,c("dept")], function(x){ceiling(mean(x, na.rm=TRUE))})
+
+##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
-save(fourierRegressionGlm.list, file="040.001_GlmOrderSearch_20140326.Rdata")
+save(dept.aic, fourierRegressionGlm.list, file="040.001_GlmOrderSearch_20140326.Rdata")
 
 
 
