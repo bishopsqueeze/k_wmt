@@ -253,49 +253,58 @@ calcLmFit <- function(mydata, h=39) {
 ##------------------------------------------------------------------
 ## Forecast a timeseries forward h timesteps
 ##------------------------------------------------------------------
-calcLmMultiFit <- function(mydata, regs=NULL, h=39) {
-    
-    ## assign the assign vector
-    x <- mydata[(mydata$tr_fl == 1), c("ws.min01")]
- 
-	## *** EFFECTIVELY NO BOX COX ***
-	if ( any(x < 0) ) {
-		orig.x <- x
-	} else {
-		orig.x  <- x
-		#lambda	<- BoxCox.lambda(x, method="guerrero", lower=0, upper=1)
-        lambda	<- 1
-		x	    <- BoxCox(x, lambda)
-	}
-    
-    ## map the vector back to the dataset
-    mydata[(mydata$tr_fl == 1), c("x")]    <- x
-    
-    ## create the formula
-    tmp.frm     <- c("x ~ factor(nweek) + time")
-    if (!is.null(regs)) {
-        tmp.frm     <- paste(tmp.frm, paste(regs,collapse=" + "), sep="+")
-    }
-    tmp.frm     <- as.formula(tmp.frm)
-    
-    #    ## compute the fit/forecast
-    h           <- mydata[ (mydata$tr_fl == 1), ]
-    p           <- mydata[ (mydata$tr_fl == 0), ]
-    fit.lm      <- lm(tmp.frm, data=h)
-    fit.lm.2    <- stepAIC(fit.lm)
-    fitted      <- as.vector(InvBoxCox(fit.lm.2$fitted, lambda=lambda))
-    fc.lm       <- predict(fit.lm.2, newdata=p)
-    forecast    <- as.vector(InvBoxCox(fc.lm, lambda=lambda))
-    
-    
-	## compute the mean absolute error (in-sample)
-	if ( !is.null(forecast) ) {
-		mae	<- sum(abs(orig.x-fitted))/length(x)
-	}
-    
-	## return the original vector, the in-sample, out-of-sample, and box-cox parameter
-	return(list(x=orig.x, fitted=fitted, forecast=forecast, lambda=lambda, mae=mae, coeffs=coefficients(fit.lm.2)))
-}
+#calcLmMultiFit <- function(mydata, wgt=NULL, regs=NULL, k=5, h=39) {
+#
+#    ## assign the assign vector
+#    x <- mydata[(mydata$tr_fl == 1), c("ws.min10")]
+#
+#    ## do a box-cox transformation if all x > 0
+#    if ( any(x < 0) ) {
+#        orig.x <- x
+#    } else {
+#        orig.x  <- x
+#        lambda	<- BoxCox.lambda(x, method="guerrero", lower=0, upper=1)
+#        x	    <- BoxCox(x, lambda)
+#    }
+#
+#	## define the timeseries
+#    y   <- ts(x, start=c(2010,5), freq=365.25/7)
+#
+#    ## compute a complete set of orders
+#    z 	<- fourier(y, K=k)
+#    zf	<- fourierf(y, K=k, h=h)
+#
+#    ## map the vector back to the dataset
+#    mydata[(mydata$tr_fl == 1), c("x")]    <- x
+#
+#    ## append the fourier series
+#    mydata  <- cbind(mydata, rbind(z, zf))
+#
+#    ## create the formula
+#    tmp.frm     <- c("x ~ ")
+#    if (!is.null(regs)) {
+#        tmp.frm     <- paste(tmp.frm, paste(regs,collapse=" + "), sep="+")
+#    }
+#    tmp.frm     <- as.formula(tmp.frm)
+#
+#    #    ## compute the fit/forecast
+#    h           <- mydata[ (mydata$tr_fl == 1), ]
+#    p           <- mydata[ (mydata$tr_fl == 0), ]
+#    fit.lm      <- lm(tmp.frm, data=h)
+#    fit.lm.2    <- stepAIC(fit.lm)
+#    fitted      <- as.vector(InvBoxCox(fit.lm.2$fitted, lambda=lambda))
+#    fc.lm       <- predict(fit.lm.2, newdata=p)
+#    forecast    <- as.vector(InvBoxCox(fc.lm, lambda=lambda))
+#
+#
+#	## compute the mean absolute error (in-sample)
+#	if ( !is.null(forecast) ) {
+#		mae	<- sum(abs(orig.x-fitted))/length(x)
+#	}
+#
+#	## return the original vector, the in-sample, out-of-sample, and box-cox parameter
+#	return(list(x=orig.x, fitted=fitted, forecast=forecast, lambda=lambda, mae=mae, coeffs=coefficients(fit.lm.2)))
+#}
 
 ##########################################################################################
 
@@ -471,7 +480,7 @@ calcFourierOrderSearch <- function(x, min.order=5, max.order=30) {
 ##------------------------------------------------------------------
 ## <function> :: calcFourierVariableSearch
 ##------------------------------------------------------------------
-calcFourierVariableSearch <- function(x, regs.hist=NULL, k=6) {
+calcFourierVariableSearch <- function(x, wgt=NULL, regs.hist=NULL, k=6) {
 	
 	## do a box-cox transformation if all x > 0
 	if ( any(x < 0) ) {
@@ -491,12 +500,12 @@ calcFourierVariableSearch <- function(x, regs.hist=NULL, k=6) {
 	## append regressors if they exist
 	if ( !is.null(regs.hist) ) {
         fit.df      <- data.frame(x=x, regs.hist, z)
-        fit         <- glm(x ~ . , data=fit.df, family="gaussian")
+        fit         <- glm(x ~ . , data=fit.df, weights=wgt, family="gaussian")
         fit2        <- stepAIC(fit, direction="backward", trace=2)
         fitted      <- InvBoxCox(as.vector(fitted(fit2)), lambda)
     } else {
         fit.df      <- data.frame(x=x, z)
-        fit         <- glm(x ~ . , data=fit.df, family="gaussian")
+        fit         <- glm(x ~ . , data=fit.df, weights=wgt, family="gaussian")
         fit2        <- stepAIC(fit, direction="backward", trace=2)
         fitted      <- InvBoxCox(as.vector(fitted(fit2)), lambda)
     }
@@ -532,12 +541,12 @@ calcFourierFit <- function(x, coeffs=NULL, regs.hist=NULL, regs.proj=NULL, k=5, 
     zf	<- fourierf(y, K=k, h=h)
     
     ## isolate relevant fourier coefficients
-    if ( !is.null(coeffs) & !any(is.na(coeffs)) ) {
-        z   <- z[ , coeffs ]
-        zf	<- zf[ , coeffs ]
+    if ( !is.null(coeffs)) {
+        if ( !any(is.na(coeffs)) ) {
+            z   <- z[ , coeffs ]
+            zf	<- zf[ , coeffs ]
+        }
     }
-    
-	## compute the fit; dependent on the presence/absence of regressors
 	
 	## no regressors
 	if ( is.null(regs.hist) ) {
@@ -547,7 +556,7 @@ calcFourierFit <- function(x, coeffs=NULL, regs.hist=NULL, regs.proj=NULL, k=5, 
 		forecast	<- InvBoxCox(as.vector(fc$mean), lambda)
     ## regressors
 	} else {
-        fit         <- auto.arima(y, xreg=cbind(z,regs.hist), seasonal=FALSE, approximation=TRUE, allowdrift=TRUE, trace=TRUE)
+        fit         <- auto.arima(y,xreg=cbind(z,regs.hist), seasonal=FALSE, approximation=TRUE, allowdrift=TRUE, trace=TRUE)
 		fitted		<- InvBoxCox(as.vector(fitted(fit)), lambda)
 		fc			<- forecast(fit, xreg=cbind(zf,regs.proj), h=h)
 		forecast	<- InvBoxCox(as.vector(fc$mean), lambda)
@@ -563,6 +572,71 @@ calcFourierFit <- function(x, coeffs=NULL, regs.hist=NULL, regs.proj=NULL, k=5, 
 	## return the original vector, the in-sample, out-of-sample, and box-cox parameter
 	return(list(x=orig.x, fitted=fitted, forecast=forecast, lambda=lambda, mae=mae))
 }
+
+
+##########################################################################################
+
+##------------------------------------------------------------------
+## <function> :: calcFourierNoArima
+##------------------------------------------------------------------
+calcFourierNoArima <- function(x, coeffs=NULL, regs.hist=NULL, regs.proj=NULL, k=5, h=39) {
+	
+	## do a box-cox transformation if all x > 0
+	if ( any(x < 0) ) {
+		orig.x <- x
+	} else {
+		orig.x  <- x
+		lambda	<- BoxCox.lambda(x, method="guerrero", lower=0, upper=1)
+		x	    <- BoxCox(x, lambda)
+	}
+    
+	## define the timeseries
+    y   <- ts(x, start=c(2010,5), freq=365.25/7)
+	
+    ## compute a complete set of orders
+    z 	<- fourier(y, K=k)
+    zf	<- fourierf(y, K=k, h=h)
+    
+    ## isolate relevant fourier coefficients
+    if ( !is.null(coeffs)) {
+        if ( !any(is.na(coeffs)) ) {
+            z   <- z[ , coeffs ]
+            zf	<- zf[ , coeffs ]
+        }
+    }
+    
+    ## append regressors if they exist
+	if ( !is.null(regs.hist) ) {
+        fit.df      <- data.frame(x=x, regs.hist, z)
+        fit         <- glm(x ~ . , data=fit.df, weights=wgt, family="gaussian")
+        fit2        <- stepAIC(fit, direction="backward", trace=2)
+        fitted      <- InvBoxCox(as.vector(fitted(fit2)), lambda)
+        proj.df     <- data.frame(regs.proj, zf)
+        fc          <- predict(fit2, newdata=proj.df)
+        forecast    <- as.vector(InvBoxBox(fc, lambda=lambda))
+    } else {
+        fit.df      <- data.frame(x=x, z)
+        fit         <- glm(x ~ . , data=fit.df, weights=wgt, family="gaussian")
+        fit2        <- stepAIC(fit, direction="backward", trace=2)
+        fitted      <- InvBoxCox(as.vector(fitted(fit2)), lambda)
+        proj.df     <- data.frame(zf)
+        fc          <- predict(fit2, newdata=proj.df)
+        forecast    <- as.vector(InvBoxBox(fc, lambda=lambda))
+    }
+
+	## compute the mean absolute error
+	if ( !is.null(forecast) ) {
+		mae	<- sum(abs(orig.x-fitted))/length(x)
+	} else {
+		mae <- NULL
+	}
+	
+	## return the original vector, the in-sample, out-of-sample, and box-cox parameter
+	return(list(x=orig.x, fitted=fitted, forecast=forecast, lambda=lambda, mae=mae, k=k, coef=coefficients(fit2), aic=fit2$aic)))
+}
+
+
+
 
 ##########################################################################################
 

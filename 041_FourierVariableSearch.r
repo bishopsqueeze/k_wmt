@@ -34,28 +34,9 @@ load("005_walmartCombinedData_20140314.Rdata")
 rm(train, test, stores, features, comb, sd.list)
 
 ##------------------------------------------------------------------
-## Process the oprimal fourier orders file
-##------------------------------------------------------------------
-#order.list  <- list()
-#fit.names   <- names(fourierRegression.list)
-#
-#for (i in 1:length(fit.names)) {
-#
-#    ## get the AIC data, but set a low-limit to the order == 5
-#    tmp.name    <- fit.names[i]
-#    tmp.res     <- fourierRegression.list[[tmp.name]]$res
-#    tmp.res     <- tmp.res[ tmp.res[,1] >=5 , ]
-#
-#    ## then pull off the order with the minimum in-sample AICc
-#    tmp.k       <- tmp.res[ which(tmp.res[,2] == min(tmp.res[,2])) , 1][1]
-#    order.list[[tmp.name]]$k    <- tmp.k
-#}
-
-##------------------------------------------------------------------
 ## Source Utilities
 ##------------------------------------------------------------------
-source("/Users/alexstephens/Development/kaggle/walmart/code/999_UtilityFunctions.r")
-
+source("/Users/alexstephens/Development/kaggle/walmart/k_wmt/000_UtilityFunctions.r")
 
 ##------------------------------------------------------------------
 ## Constants
@@ -116,9 +97,9 @@ for (i in 1:numTestSd) {
 	num.obs		<- sum(!is.na(tmp.hist$weekly_sales))
 
 	## define a filename for the plot
-	#tmp.folder		<- paste(wd, "/FourierRegressionOrder_0326/", substr(tmp.sd,1,2), "/", sep="")
-	#tmp.filename	<- paste(tmp.folder, tmp.sdName, ".FourierRegressionOrder.pdf", sep="")
-	#dir.create(tmp.folder, showWarnings = FALSE)
+	tmp.folder		<- paste(wd, "/FourierRegressionOrder_0328/", substr(tmp.sd,4,5), "/", sep="")
+	tmp.filename	<- paste(tmp.folder, tmp.sdName, ".FourierRegressionOrder.pdf", sep="")
+	dir.create(tmp.folder, showWarnings = FALSE)
 
 	## report progress
 	cat("Processing: SD = ", tmp.sdName, "\n")
@@ -126,27 +107,27 @@ for (i in 1:numTestSd) {
 	##------------------------------------------------------------------
 	## basic  projection
 	##------------------------------------------------------------------
-	if ( (tmp.store >= 1) & (tmp.dept >= 1) ) {
+	if ( (tmp.store > 0) & (tmp.dept > 0) ) {
 		if (num.obs >= minObs) {
             
             ## grab the weekly sales data (floored at $10 b/c of box-cox)
             ws      <- tmp.hist$ws.min10[ (tmp.tr_fl == 1) ]
             
             ## define the regressors
-            reg.hist    <- holiday.df[ (tmp.tr_fl == 1), ]
-            #reg.proj    <- holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m01")]
+            reg.dates   <- holiday.df[ (tmp.tr_fl == 1), c(3, grep("ea_", names(holiday.df)), grep("mo_",names(holiday.df))) ]
+            reg.econ    <- tmp.dat[ (tmp.tr_fl == 1), c(13:16, 19:23) ]
+            tmp.wgt     <- tmp.wgt[ (tmp.tr_fl == 1) ]
             
             ## perform the fit
-            tmp.fit     <- calcFourierVariableSearch(ws, regs.hist=reg.hist, k=40)
-        
+            tmp.fit     <- calcFourierVariableSearch(ws, wgt=tmp.wgt, regs.hist=cbind(reg.dates, reg.econ), k=30)
         
 			## plot the results
-			#pdf(tmp.filename)
-            #    plot(c(tmp.fit$x), type="n", main=tmp.sdName, xlab="Time Index", ylab="Weekly Sales")  ## null plot
-            #    points(tmp.fit$x, type="b", pch=20, col="grey", lwd=2)
-			#	#points(c(tmp.fit$fitted, tmp.fit$forecast), type="b", pch=1, col="red")
-            #    points(c(tmp.fit$fitted), type="b", pch=1, col="red")
-            #dev.off()
+			pdf(tmp.filename)
+                plot(c(tmp.fit$x), type="n", main=tmp.sdName, xlab="Time Index", ylab="Weekly Sales")  ## null plot
+                points(tmp.fit$x, type="b", pch=20, col="grey", lwd=2)
+				#points(c(tmp.fit$fitted, tmp.fit$forecast), type="b", pch=1, col="red")
+                points(c(tmp.fit$fitted), type="b", pch=1, col="red")
+            dev.off()
 			
 			## save the results
             fourierVariable.list[[tmp.sdName]] <- tmp.fit
@@ -158,12 +139,15 @@ for (i in 1:numTestSd) {
 			
 		}
 	}
+    x <- fourierVariable.list[[tmp.sdName]]
+    save(x, file=paste("./VariableSearch/",tmp.sdName,".Rdata",sep=""))
+    
 }
 
 ##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
-##save(fourierVariable.list, file="040.01_FourierVariableSearch_20140326.Rdata")
+save(fourierVariable.list, file="040.01_FourierVariableSearch_20140328.Rdata")
 
 
 

@@ -31,6 +31,11 @@ wd	<- getwd()
 load("005_walmartCombinedData_20140314.Rdata")                              ## raw data
 load("./OrderSearch/040_FourierOrderSearch_Only40_All_20140326.Rdata")      ## optimal fourier coefficients
 
+
+#load("./OrderSearch/040_FourierOrderSearch_20140326.Rdata")      ## optimal fourier coefficients
+#a <- unlist(lapply(fourierRegression.list, function(x){x$k}))
+
+
 ##------------------------------------------------------------------
 ## Source Utilities
 ##------------------------------------------------------------------
@@ -85,7 +90,7 @@ for (i in 1:length(fit.names)) {
     ## then pull off the order with the minimum in-sample AICc
     #tmp.k       <- tmp.res[ which(tmp.res[,2] == min(tmp.res[,2])) , 1][1]
     #tmp.k                           <- tmp.res[2]
-    #orderCoef.list[[tmp.name]]$k    <- tmp.k
+    orderCoef.list[[tmp.name]]$k    <- orders.list[[tmp.name]]$k
     orderCoef.list[[tmp.name]]$coef <- names(tmp.coef)[2:length(tmp.coef)]
     
 }
@@ -131,7 +136,7 @@ for (i in 1:numTestSd) {
 	##------------------------------------------------------------------
 	## basic stl projection
 	##------------------------------------------------------------------
-	if ( (tmp.store == 21) & (tmp.dept > 79) ) {
+	if ( (tmp.store == 17) & (tmp.dept == 72) ) {
 		if ((num.obs > minObs) & (tmp.sd != "43_28")) {
             if ( !is.null(orderCoef.list[[tmp.sdName]]) ) {
 
@@ -142,8 +147,8 @@ for (i in 1:numTestSd) {
                 ws	<- tmp.dat$ws.min10[ (tmp.tr_fl == 1) ]     ## min10 because of BoxCox transform
 
                 ## grab the fourier order based on the order search
-                #k   <- orderCoef.list[[tmp.sdName]]$k
-                #k   <- max(20, orderCoef.list[[tmp.sdName]]$k)      ## force minimum fit of order 20
+                k   <- orderCoef.list[[tmp.sdName]]$k
+                k   <- max(20, orderCoef.list[[tmp.sdName]]$k)      ## force minimum fit of order 20
                 
                 ##------------------------------------------------------------------
                 ## Questionable whether or not the standard set of holiday flags
@@ -361,8 +366,8 @@ for (i in 1:numTestSd) {
                     tmp.hhol     <- NULL
                     tmp.phol     <- NULL
                 } else if (tmp.dept == 72) {
-                    tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
-                    tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m01")]
+                    tmp.hhol     <- NULL #holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
+                    tmp.phol     <- NULL #holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m01")]
                 ##------------------------------------------------------------------
                 ## [?][d74] -
                 ##------------------------------------------------------------------
@@ -448,17 +453,18 @@ for (i in 1:numTestSd) {
                 
                 ## adjust fit based on number of coefficients selected ???
                 
-                tmp.fit	<- calcFourierFit(ws, coeffs=tmp.coef, regs.hist=tmp.hhol, regs.proj=tmp.phol, k=40, h=39)
+                tmp.fit	<- calcFourierFit(ws, coeffs=NULL, regs.hist=tmp.hhol, regs.proj=tmp.phol, k=30, h=39)
+                #tmp.fit	<- calcFourierFit(ws, coeffs=tmp.coef, regs.hist=tmp.hhol, regs.proj=tmp.phol, k=40, h=39)
                 ##tmp.fit	<- calcFourierFit(ws, regs.hist=tmp.hhol, regs.proj=tmp.phol, k=k, h=39)
                 
                 ##------------------------------------------------------------------
                 ## plot the results
                 ##------------------------------------------------------------------
-                pdf(tmp.filename)
-                    plot(c(tmp.fit$x,tmp.fit$forecast), type="n", main=tmp.sdName, xlab="Time Index", ylab="Weekly Sales")  ## null plot
+                #pdf(tmp.filename)
+                    plot(c(tmp.fit$x,tmp.fit$forecast), type="n", main=tmp.sdName, xlab="Time Index", ylab="Weekly Sales")
                     points(tmp.fit$x, type="b", pch=20, col="grey", lwd=2)
                     points(c(tmp.fit$fitted, tmp.fit$forecast), type="b", pch=1, col="red")
-                dev.off()
+                #dev.off()
 			
                 ## save the results
                 vanilla.list[[tmp.sdName]] <- tmp.fit
