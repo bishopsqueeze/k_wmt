@@ -631,12 +631,12 @@ calcArimaForecast <- function(x, coeffs=NULL, regs.hist=NULL, regs.proj=NULL, k=
 	
 	## append regressors if they exist & do the fit
 	if ( is.null(regs.hist) ) {
-        fit         <- auto.arima(y, seasonal=FALSE, approximation=TRUE, allowdrift=TRUE, trace=TRUE)
+        fit         <- auto.arima(y, seasonal=FALSE, approximation=TRUE, allowdrift=TRUE, trace=FALSE)
 		fitted		<- InvBoxCox(as.vector(fitted(fit)), lambda)
 		fc 			<- forecast(fit, h=h)
 		forecast	<- InvBoxCox(as.vector(fc$mean), lambda)
 	} else {
-        fit         <- auto.arima(y, xreg=regs.hist, seasonal=FALSE, approximation=TRUE, allowdrift=TRUE, trace=TRUE)
+        fit         <- auto.arima(y, xreg=regs.hist, seasonal=FALSE, approximation=TRUE, allowdrift=TRUE, trace=FALSE)
 		fitted		<- InvBoxCox(as.vector(fitted(fit)), lambda)
 		fc			<- forecast(fit, xreg=regs.proj, h=h)
 		forecast	<- InvBoxCox(as.vector(fc$mean), lambda)
@@ -689,13 +689,13 @@ calcFourierFit <- function(x, coeffs=NULL, regs.hist=NULL, regs.proj=NULL, k=5, 
 	
 	## no regressors
 	if ( is.null(regs.hist) ) {
-        fit         <- auto.arima(y, xreg=z, seasonal=FALSE, approximation=TRUE, allowdrift=TRUE, trace=TRUE)
+        fit         <- auto.arima(y, xreg=z, seasonal=FALSE, approximation=TRUE, allowdrift=TRUE, trace=FALSE)
 		fitted		<- InvBoxCox(as.vector(fitted(fit)), lambda)
 		fc 			<- forecast(fit, xreg=zf, h=h)
 		forecast	<- InvBoxCox(as.vector(fc$mean), lambda)
     ## regressors
 	} else {
-        fit         <- auto.arima(y,xreg=cbind(z,regs.hist), seasonal=FALSE, approximation=TRUE, allowdrift=TRUE, trace=TRUE)
+        fit         <- auto.arima(y,xreg=cbind(z,regs.hist), seasonal=FALSE, approximation=TRUE, allowdrift=TRUE, trace=FALSE)
 		fitted		<- InvBoxCox(as.vector(fitted(fit)), lambda)
 		fc			<- forecast(fit, xreg=cbind(zf,regs.proj), h=h)
 		forecast	<- InvBoxCox(as.vector(fc$mean), lambda)

@@ -72,10 +72,16 @@ numWeek         <- 52
 minTime         <- 5
 maxTime         <- 186
 minOrder        <- 15
-maxOrder        <- 30
+maxOrder        <- 25
 
 ## minimum requirements for a fit
 minObs          <- 100
+
+##------------------------------------------------------------------
+## use sink() to monitor progress
+##------------------------------------------------------------------
+#vanilla.list    <- list()
+writeLines(c(""), "arimaOrderSearchParallel.txt")
 
 ##------------------------------------------------------------------
 ## Loop over all of the test s/d combos and compute the forecast
@@ -107,28 +113,81 @@ fourierOrderArima.list <- foreach(i=1:numTestSd) %dopar% {
 	##------------------------------------------------------------------
 	## basic  projection
 	##------------------------------------------------------------------
-	if ( (tmp.store > 0) & (tmp.dept == 5) ) {
+	if ( (tmp.store > 0) & (tmp.dept == 90) ) {
 		if (num.obs >= minObs) {
-            
-            ws      <- tmp.hist$ws.min10
+
+            ## report progress
+            sink("log.txt", append=TRUE)
+            cat("Processing: SD = ", tmp.sdName, "\n")
+
+            ## grab the sales data
+            ws <- tmp.hist$ws.min10
 
             ##------------------------------------------------------------------
-            ## [+][d05]
+            ## [***][d01] -
             ##------------------------------------------------------------------
-            if (tmp.dept == 5) {
-                tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("sb_m01","sb_m00","ea_m00","md_m00","fj_m00","td_m00","xm_m01")]
+            if (tmp.dept == 1) {
+                tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("sb_m00","va_m00","ea_m01","ea_m00","ha_m01","ha_m00","xm_m02","xm_m01")]
+                
+            ##------------------------------------------------------------------
+            ## [***][d03] -
+            ##------------------------------------------------------------------
+            } else if (tmp.dept == 3) {
+                tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
 
             ##------------------------------------------------------------------
-            ## [+][d07] - "td_m00","td_p01" for separation
+            ## [***][d05]
+            ##------------------------------------------------------------------
+            } else if (tmp.dept == 5) {
+                tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("sb_m01","sb_m00","ea_m00","md_m00","fj_m00","td_m00","xm_m01")]
+
+            ##------------------------------------------------------------------
+            ## [***][d07] -
             ##------------------------------------------------------------------
             } else if (tmp.dept == 7) {
-                tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00","td_m00","td_p01")]
+                tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00","td_m00","td_p01")]
 
             ##------------------------------------------------------------------
-            ## [+][d72] -
+            ## [***][d16] -
+            ##------------------------------------------------------------------
+            } else if (tmp.dept == 16) {
+                tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00")]
+                
+            ##------------------------------------------------------------------
+            ## [***][d18] -
+            ##------------------------------------------------------------------
+            } else if (tmp.dept == 18) {
+                tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("sb_m00","va_m00","ea_m00","ha_m00")]
+                
+            ##------------------------------------------------------------------
+            ## [][d38] -
+            ##------------------------------------------------------------------
+            } else if (tmp.dept == 38) {
+                tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
+
+            ##------------------------------------------------------------------
+            ## [***][d72] -
             ##------------------------------------------------------------------
             } else if (tmp.dept == 72) {
                 tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("sb_m00", "td_m00", "xm_m01")]
+                
+            ##------------------------------------------------------------------
+            ## [***][d90] -
+            ##------------------------------------------------------------------
+            } else if (tmp.dept == 90) {
+                tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","td_m01","td_m00","xm_m02","xm_m01","xm_m00")]
+                
+            ##------------------------------------------------------------------
+            ## [***][d92] - (similar to d90)
+            ##------------------------------------------------------------------
+            } else if (tmp.dept == 92) {
+                tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m02","xm_m01","xm_m00")]
+                
+            ##------------------------------------------------------------------
+            ## [***][d95] -
+            ##------------------------------------------------------------------
+            } else if (tmp.dept == 95) {
+                tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("fj_m01","fj_m00","xm_m01","xm_m00")]
                 
             ##------------------------------------------------------------------
             ## [catch-all]
@@ -137,7 +196,7 @@ fourierOrderArima.list <- foreach(i=1:numTestSd) %dopar% {
                 tmp.hhol <- NULL
             }
             
-            tmp.fit <- calcFourierOrder(ws, id=tmp.sdName, regs.hist=tmp.hhol, min.order=15, max.order=25, min.boxcox=0, max.boxcox=1)
+            tmp.fit <- calcFourierOrder(ws, id=tmp.sdName, regs.hist=tmp.hhol, min.order=minOrder, max.order=maxOrder, min.boxcox=0, max.boxcox=1)
             
 		} else {
 
@@ -168,7 +227,7 @@ for (i in 1:length(fourierOrderArima.list)) {
 ##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
-save(list.names, list.k, aic.mat, fourierOrderArima.list, file="040.003_ArimaOrderSearch_Dept05.Rdata")
+save(list.names, list.k, aic.mat, fourierOrderArima.list, file="040.003_ArimaOrderSearch_Dept90.Rdata")
 
 
 
