@@ -41,9 +41,8 @@ load("005_walmartCombinedData_20140326.Rdata")
 ##------------------------------------------------------------------
 ## Load order search data
 ##------------------------------------------------------------------
-##load("041.001_GlmVariableSearch_Min5_Max40_FactorsEcon_HolidaysAll_WeightEqual_20140329.Rdata")
+load("041.001_GlmVariableSearch_Min5_Max40_FactorsEcon_HolidaysAll_WeightEqual_20140329.Rdata")
 orders.list <- fourierRegressionGlm.list
-
 
 ##------------------------------------------------------------------
 ## Source Utilities
@@ -80,6 +79,7 @@ maxOrder        <- 40
 ## minimum requirements for a fit
 minObs          <- 100
 
+
 ##------------------------------------------------------------------
 ## Process the fit file
 ##------------------------------------------------------------------
@@ -91,12 +91,14 @@ for (i in 1:length(fit.names)) {
     ## get the AIC data, but set a low-limit to the order == 5
     tmp.name    <- fit.names[i]
     tmp.coef    <- orders.list[[tmp.name]]$coef
+    tmp.tval    <- orders.list[[tmp.name]]$tval
 
     ## then pull off the order with the minimum in-sample AICc
     orderCoef.list[[tmp.name]]$k    <- orders.list[[tmp.name]]$k
     orderCoef.list[[tmp.name]]$coef <- names(tmp.coef)[2:length(tmp.coef)]
-    
+    orderCoef.list[[tmp.name]]$tval <- tmp.tval[2:length(tmp.tval)]
 }
+
 
 ##------------------------------------------------------------------
 ## Loop over all of the test s/d combos and compute the forecast
@@ -121,19 +123,20 @@ for (i in 1:numTestSd) {
 
     ## grab fourier coefficients
     tmp.coef    <- orderCoef.list[[tmp.sdName]]$coef
+    tmp.tval    <- orderCoef.list[[tmp.sdName]]$tval
     
 	## number of original observations
 	num.obs		<- sum(!is.na(tmp.hist$weekly_sales))
 
 	## define a filename for the plot
-	#tmp.folder		<- paste(wd, "/ForecastVanillaFourier_0326/", substr(tmp.sd,4,5), "/", sep="")
-	#tmp.filename	<- paste(tmp.folder, tmp.sdName, ".ForecastFourierResults.pdf", sep="")
-	#dir.create(tmp.folder, showWarnings = FALSE)
+	tmp.folder		<- paste(wd, "/TEST/", substr(tmp.sd,4,5), "/", sep="")
+	tmp.filename	<- paste(tmp.folder, tmp.sdName, ".ForecastFourierResults.pdf", sep="")
+	dir.create(tmp.folder, showWarnings = FALSE)
 
 	##------------------------------------------------------------------
 	## basic stl projection
 	##------------------------------------------------------------------
-	if ( (tmp.store > 0) & (tmp.dept == 72) ) {
+	if ( (tmp.store > 0) & (tmp.dept == 92) ) {
 		if ((num.obs > minObs) & (tmp.sd != "43_28")) {
             if ( !is.null(orderCoef.list[[tmp.sdName]]) ) {
 
@@ -144,7 +147,7 @@ for (i in 1:numTestSd) {
                 ws	<- tmp.dat$ws.min10[ (tmp.tr_fl == 1) ]     ## min10 because of BoxCox transform
 
                 ## grab the fourier order based on the order search
-                k   <- orderCoef.list[[tmp.sdName]]$k
+                k   <- max(20,orderCoef.list[[tmp.sdName]]$k)
                 #k   <- max(20, orderCoef.list[[tmp.sdName]]$k)      ## force minimum fit of order 20
                 
                 ##------------------------------------------------------------------
@@ -158,10 +161,11 @@ for (i in 1:numTestSd) {
                 ## [~][d01] -
                 ##------------------------------------------------------------------
                 if (tmp.dept == 1) {
-                    tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("sb_m00","va_m00","ea_m01","ea_m00","ha_m01","ha_m00","xm_m02","xm_m01")]
-                    tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("sb_m00","va_m00","ea_m01","ea_m00","ha_m01","ha_m00","xm_m02","xm_m01")]
+                    #tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("sb_m00","va_m00","ea_m01","ea_m00","ha_m01","ha_m00","xm_m02","xm_m01")]
+                    #tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("sb_m00","va_m00","ea_m01","ea_m00","ha_m01","ha_m00","xm_m02","xm_m01")]
                     ## order constraints
                     ##k            <- max(6,orderCoef.list[[tmp.sdName]]$k)
+                    tmp.hol <- c("sb_m00","va_m00","ea_m01","ea_m00","ha_m01","ha_m00","xm_m02","xm_m01")
                 ##------------------------------------------------------------------
                 ## [+][d02] - s22/s23/s29/s39
                 ##------------------------------------------------------------------
@@ -186,6 +190,7 @@ for (i in 1:numTestSd) {
                 } else if (tmp.dept == 5) {
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("sb_m00","ea_m00","md_m00","fj_m00","td_m00","xm_m01")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("sb_m00","ea_m00","md_m00","fj_m00","td_m00","xm_m01")]
+                    ## k= 20
                 ##------------------------------------------------------------------
                 ## [~][d06] - can revisit, since there are a low of downward trends
                 ##------------------------------------------------------------------
@@ -198,6 +203,7 @@ for (i in 1:numTestSd) {
                 } else if (tmp.dept == 7) {
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("ea_m01","ea_m00","md_m00","fj_m00")]
+                    ## k =20
                 ##------------------------------------------------------------------
                 ## [+][d08] - excess s02/s17/s23/s24/s25/s35/s39/s40/s41 (caps???)
                 ##------------------------------------------------------------------
@@ -241,7 +247,7 @@ for (i in 1:numTestSd) {
                     tmp.hhol     <- NULL
                     tmp.phol     <- NULL
                 ##------------------------------------------------------------------
-                ## [+][d16] - no real spikes
+                ## [+][d16] - no real spikes k=20???
                 ##------------------------------------------------------------------
                 } else if (tmp.dept == 16) {
                     tmp.hhol     <- NULL
@@ -363,8 +369,12 @@ for (i in 1:numTestSd) {
                     tmp.hhol     <- NULL
                     tmp.phol     <- NULL
                 } else if (tmp.dept == 72) {
-                    tmp.hhol     <- NULL #holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
-                    tmp.phol     <- NULL #holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m01")]
+                    
+                    ## k = 20
+                    tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m00","xm_m01","sb_m00")]
+                    tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("td_m00","xm_m01","sb_m00")]
+                    #tmp.hol     <- c("td_m01","td_m00","xm_m01")
+                    
                 ##------------------------------------------------------------------
                 ## [?][d74] -
                 ##------------------------------------------------------------------
@@ -410,6 +420,7 @@ for (i in 1:numTestSd) {
                 } else if (tmp.dept == 92) {
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m02","xm_m01","xm_m00")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m02","xm_m01","xm_m00")]
+                    ## k > 20
                 } else if (tmp.dept == 93) {
                     #tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
                     #tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m01")]
@@ -447,21 +458,26 @@ for (i in 1:numTestSd) {
                 ##------------------------------------------------------------------
                 ## compute a basic stl projection
                 ##------------------------------------------------------------------
+                f.coef <- tmp.coef[grep("^[SC]",tmp.coef)]
+                f.tval <- tmp.tval[grep("^[SC]",tmp.coef)]
+                n.coef <- tmp.coef[grep("^[n]",tmp.coef)]
+                n.tval <- tmp.tval[grep("^[n]",tmp.coef)]
                 
-                ## adjust fit based on number of coefficients selected ???
+                f.coef[abs(f.tval)>0.5]
                 
-                tmp.fit	<- calcFourierFit(ws, coeffs=NULL, regs.hist=tmp.hhol, regs.proj=tmp.phol, k=30, h=39)
-                #tmp.fit	<- calcFourierFit(ws, coeffs=tmp.coef, regs.hist=tmp.hhol, regs.proj=tmp.phol, k=40, h=39)
-                ##tmp.fit	<- calcFourierFit(ws, regs.hist=tmp.hhol, regs.proj=tmp.phol, k=k, h=39)
+                k <- 24
+                f.coef <- c(paste("C",1:k,sep=""),paste("S",1:k,sep=""))
+                
+                tmp.fit     <- calcFourierFit(ws, coeffs=f.coef, regs.hist=tmp.hhol, regs.proj=tmp.phol, k=40, h=39)
                 
                 ##------------------------------------------------------------------
                 ## plot the results
                 ##------------------------------------------------------------------
-                #pdf(tmp.filename)
-                #    plot(c(tmp.fit$x,tmp.fit$forecast), type="n", main=tmp.sdName, xlab="Time Index", ylab="Weekly Sales")
-                #    points(tmp.fit$x, type="b", pch=20, col="grey", lwd=2)
-                #    points(c(tmp.fit$fitted, tmp.fit$forecast), type="b", pch=1, col="red")
-                #dev.off()
+                pdf(tmp.filename)
+                    plot(c(tmp.fit$x,tmp.fit$forecast), type="n", main=tmp.sdName, xlab="Time Index", ylab="Weekly Sales")
+                    points(tmp.fit$x, type="b", pch=20, col="grey", lwd=2)
+                    points(c(tmp.fit$fitted, tmp.fit$forecast), type="b", pch=1, col="red")
+                dev.off()
 			
                 ## save the results
                 #vanilla.list[[tmp.sdName]] <- tmp.fit

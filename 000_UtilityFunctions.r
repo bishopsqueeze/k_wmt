@@ -391,7 +391,7 @@ genFourier <- function(t, terms, period) {
 ##------------------------------------------------------------------
 ## <function> :: calcFourierOrder
 ##------------------------------------------------------------------
-calcFourierOrder <- function(x, max.order=20, h=39) {
+calcFourierOrder <- function(x, min.order=5, max.order=30, min.boxcox=0, max.boxcox=1, wgt=NULL) {
 	
 	## do a box-cox transformation if all x > 0
 	if ( any(x < 0) ) {
@@ -403,26 +403,25 @@ calcFourierOrder <- function(x, max.order=20, h=39) {
 	}
 	
 	## define the timeseries
-    #y   <- ts(x, start=c(2010,5), freq=365.25/7)
-    y   <- ts(x, start=c(2010,5), freq=52)
+    y   <- ts(x, start=c(2010,5), freq=365.25/7)
     
     ## define a placeholder matrix for results
-    bestmat <- matrix(, nrow=(max.order/2), ncol=2)
+    bestmat <- matrix(, nrow=(max.order-min.order+1), ncol=2)
     
     ## compute even orders only
-    for (i in seq(from=2, to=max.order, by=2)) {
+    for (i in seq(from=min.order, to=max.order, by=1)) {
         
         ## compute the arima fit
-        fit  <- auto.arima(y, xreg=fourier(y, K=i), seasonal=FALSE, trace=TRUE)
+        fit  <- auto.arima(y, xreg=fourier(y, K=i), seasonal=FALSE, trace=FALSE)
         
         ## record results
-        bestmat[(i/2),] <- c(i, fit$aicc)
+        bestmat[(i-min.order+1),] <- c(i, fit$aicc)
         
     }
     
     ## identify the order that minimized the aicc & refit
-    k       <- bestmat[ which(bestmat[,2] == min(bestmat[,2])) , 1]
-    bestfit <- auto.arima(y, xreg=fourier(y, K=k), seasonal=FALSE, trace=TRUE)
+    k       <- bestmat[ which( (bestmat[,2] == min(bestmat[,2])) ) , 1][1]
+    bestfit <- auto.arima(y, xreg=fourier(y, K=k), seasonal=FALSE, trace=FALSE)
     fitted	<- InvBoxCox(as.vector(fitted(bestfit)), lambda)
     
 	## return the original vector, the in-sample, out-of-sample, and box-cox parameter
@@ -533,6 +532,111 @@ calcGlmVariableSearch <- function(x, regs.hist=NULL, min.order=5, max.order=30, 
                 coef=coefficients(bestfit), sderr=fit.sum$coefficients[,2], tval=fit.sum$coefficients[,3]))
 
 }
+
+##########################################################################################
+
+##------------------------------------------------------------------
+## <function> :: calcGlmForecast
+##------------------------------------------------------------------
+calcGlmForecast <- function(x, coeffs=NULL, regs.hist=NULL, regs.proj=NULL, min.order=5, max.order=30, min.boxcox=0, max.boxcox=1, wgt=NULL, k=40, h=39) {
+	
+	## do a box-cox transformation if all x > 0
+	if ( any(x < 0) ) {
+		orig.x <- x
+	} else {
+		orig.x  <- x
+		lambda	<- BoxCox.lambda(x, method="guerrero", lower=0, upper=1)
+		x	    <- BoxCox(x, lambda)
+	}
+    
+	## define the timeseries
+    y   <- ts(x, start=c(2010,5), freq=365.25/7)
+	
+    ## compute a complete set of fourier orders
+    z 	<- fourier(y, K=k)
+    zf	<- fourierf(y, K=k, h=h)
+    
+    ## isolate relevant fourier coefficients
+    if ( !is.null(coeffs)) {
+        if ( !any(is.na(coeffs)) ) {
+            if ( length(which(colnames(z) %in% coeffs)) > 0 ) {
+                z   <- z[ , coeffs ]
+                zf	<- zf[ , coeffs ]
+            }
+        }
+    }
+    
+    ## append regressors if they exist
+	if ( !is.null(regs.hist) ) {
+        fit.df      <- data.frame(x=x, regs.hist, z)
+        proj.df     <- data.frame(regs.proj, zf)
+    } else {
+        fit.df      <- data.frame(x=x, z)
+        proj.df     <- data.frame(zf)
+    }
+    
+    ## do the fit
+    fit2        <- stepAIC(glm(x ~ . , data=fit.df, weights=wgt, family="gaussian"), direction="both")
+    fitted      <- InvBoxCox(as.vector(fitted(fit2)), lambda)
+    fc          <- predict(fit2, newdata=proj.df)
+    forecast    <- as.vector(InvBoxCox(fc, lambda=lambda))
+
+	## compute the mean absolute error
+	if ( !is.null(forecast) ) {
+		mae	<- sum(abs(orig.x-fitted))/length(x)
+	} else {
+		mae <- NULL
+	}
+	
+	## return the original vector, the in-sample, out-of-sample, and box-cox parameter
+	return(list(x=orig.x, fitted=fitted, forecast=forecast, residuals=(fitted-orig.x), lambda=lambda, mae=mae))
+}
+
+
+##########################################################################################
+
+##------------------------------------------------------------------
+## <function> :: calcArimaForecast
+##------------------------------------------------------------------
+calcArimaForecast <- function(x, coeffs=NULL, regs.hist=NULL, regs.proj=NULL, k=5, h=39) {
+	
+	## do a box-cox transformation if all x > 0
+	if ( any(x < 0) ) {
+		orig.x  <- x
+        lambda  <- 1
+	} else {
+		orig.x  <- x
+		lambda	<- BoxCox.lambda(x, method="guerrero", lower=0, upper=1)
+		x	    <- BoxCox(x, lambda)
+	}
+    
+	## define the timeseries
+    y   <- ts(x, start=c(2010,5), freq=365.25/7)
+	
+	## append regressors if they exist & do the fit
+	if ( is.null(regs.hist) ) {
+        fit         <- auto.arima(y, seasonal=FALSE, approximation=TRUE, allowdrift=TRUE, trace=TRUE)
+		fitted		<- InvBoxCox(as.vector(fitted(fit)), lambda)
+		fc 			<- forecast(fit, h=h)
+		forecast	<- InvBoxCox(as.vector(fc$mean), lambda)
+	} else {
+        fit         <- auto.arima(y, xreg=regs.hist, seasonal=FALSE, approximation=TRUE, allowdrift=TRUE, trace=TRUE)
+		fitted		<- InvBoxCox(as.vector(fitted(fit)), lambda)
+		fc			<- forecast(fit, xreg=regs.proj, h=h)
+		forecast	<- InvBoxCox(as.vector(fc$mean), lambda)
+	}
+	
+    ## compute the mean absolute error
+	if ( !is.null(forecast) ) {
+		mae	<- sum(abs(orig.x-fitted))/length(x)
+	} else {
+		mae <- NULL
+	}
+	
+	## return the original vector, the in-sample, out-of-sample, and box-cox parameter
+	return(list(x=orig.x, fitted=fitted, forecast=forecast, lambda=lambda, mae=mae))
+}
+
 
 ##########################################################################################
 
