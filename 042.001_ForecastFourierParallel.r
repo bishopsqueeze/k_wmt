@@ -146,7 +146,7 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
 	##------------------------------------------------------------------
 	## basic stl projection
 	##------------------------------------------------------------------
-	if ( (tmp.store > 0) & (tmp.dept == 90) ) {
+	if ( (tmp.store > 0) & (tmp.dept > 0) ) {
 		if ((num.obs > minObs) & (tmp.sd != "43_28")) {
             if ( !is.null(order.list[[tmp.sdName]]) ) {
 
