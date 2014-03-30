@@ -16,6 +16,7 @@ library(forecast)
 library(foreach)
 library(doMC)
 library(MASS)
+library(Hmisc)
 
 ##------------------------------------------------------------------
 ## Register the clusters
@@ -128,6 +129,10 @@ for (i in 1:numTestSd) {
 	## number of original observations
 	num.obs		<- sum(!is.na(tmp.hist$weekly_sales))
 
+    ## add holiday flags
+    holiday.df$sb_m01                           <- Lag(holiday.df$sb_m00,-1)
+    holiday.df$sb_m01[is.na(holiday.df$sb_m01)] <- 0
+    
 	## define a filename for the plot
 	tmp.folder		<- paste(wd, "/TEST/", substr(tmp.sd,4,5), "/", sep="")
 	tmp.filename	<- paste(tmp.folder, tmp.sdName, ".ForecastFourierResults.pdf", sep="")
@@ -136,7 +141,7 @@ for (i in 1:numTestSd) {
 	##------------------------------------------------------------------
 	## basic stl projection
 	##------------------------------------------------------------------
-	if ( (tmp.store > 0) & (tmp.dept == 92) ) {
+	if ( (tmp.store > 0) & (tmp.dept == 5) ) {
 		if ((num.obs > minObs) & (tmp.sd != "43_28")) {
             if ( !is.null(orderCoef.list[[tmp.sdName]]) ) {
 
@@ -147,7 +152,7 @@ for (i in 1:numTestSd) {
                 ws	<- tmp.dat$ws.min10[ (tmp.tr_fl == 1) ]     ## min10 because of BoxCox transform
 
                 ## grab the fourier order based on the order search
-                k   <- max(20,orderCoef.list[[tmp.sdName]]$k)
+                #k   <- max(20,orderCoef.list[[tmp.sdName]]$k)
                 #k   <- max(20, orderCoef.list[[tmp.sdName]]$k)      ## force minimum fit of order 20
                 
                 ##------------------------------------------------------------------
@@ -188,9 +193,9 @@ for (i in 1:numTestSd) {
                 ## [+][d05] - dates important
                 ##------------------------------------------------------------------
                 } else if (tmp.dept == 5) {
-                    tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("sb_m00","ea_m00","md_m00","fj_m00","td_m00","xm_m01")]
-                    tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("sb_m00","ea_m00","md_m00","fj_m00","td_m00","xm_m01")]
-                    ## k= 20
+                    tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("sb_m01","sb_m00","ea_m00","md_m00","fj_m00","td_m00","xm_m01")]
+                    tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("sb_m01","sb_m00","ea_m00","md_m00","fj_m00","td_m00","xm_m01")]
+                    k <- 20
                 ##------------------------------------------------------------------
                 ## [~][d06] - can revisit, since there are a low of downward trends
                 ##------------------------------------------------------------------
@@ -198,12 +203,15 @@ for (i in 1:numTestSd) {
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("mo_m00","fj_m00","td_m00","xm_m02","xm_m01")] #,"td_m01"
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("mo_m00","fj_m00","td_m00","xm_m02","xm_m01")] #,"td_m01","td_m00","xm_m02","xm_m01"
                 ##------------------------------------------------------------------
-                ## [+][d07] - spike dom; md/fj/td/xm; [?] can add "td_m00","td_p01" for separation [?]
+                ## [+][d07] - spike dom; added "td_m00","td_p01" for separation
                 ##------------------------------------------------------------------
                 } else if (tmp.dept == 7) {
-                    tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00")]
-                    tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("ea_m01","ea_m00","md_m00","fj_m00")]
-                    ## k =20
+                    
+                    load("040.003_ArimaOrderSearch_Dept07.Rdata")
+                    k <- list.k[ which(list.names %in% tmp.sdName) ]
+                    tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00","td_m00","td_p01")]
+                    tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("ea_m01","ea_m00","md_m00","fj_m00","td_m00","td_p01")]
+   
                 ##------------------------------------------------------------------
                 ## [+][d08] - excess s02/s17/s23/s24/s25/s35/s39/s40/s41 (caps???)
                 ##------------------------------------------------------------------
@@ -368,12 +376,15 @@ for (i in 1:numTestSd) {
                 } else if (tmp.dept == 65) {
                     tmp.hhol     <- NULL
                     tmp.phol     <- NULL
+                ##------------------------------------------------------------------
+                ## [+][d72] -
+                ##------------------------------------------------------------------
                 } else if (tmp.dept == 72) {
                     
-                    ## k = 20
+                    load("040.003_ArimaOrderSearch_Dept72.Rdata")
+                    k <- list.k[ which(list.names %in% tmp.sdName) ]
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m00","xm_m01","sb_m00")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("td_m00","xm_m01","sb_m00")]
-                    #tmp.hol     <- c("td_m01","td_m00","xm_m01")
                     
                 ##------------------------------------------------------------------
                 ## [?][d74] -
@@ -458,14 +469,7 @@ for (i in 1:numTestSd) {
                 ##------------------------------------------------------------------
                 ## compute a basic stl projection
                 ##------------------------------------------------------------------
-                f.coef <- tmp.coef[grep("^[SC]",tmp.coef)]
-                f.tval <- tmp.tval[grep("^[SC]",tmp.coef)]
-                n.coef <- tmp.coef[grep("^[n]",tmp.coef)]
-                n.tval <- tmp.tval[grep("^[n]",tmp.coef)]
-                
-                f.coef[abs(f.tval)>0.5]
-                
-                k <- 24
+                #k <- 16
                 f.coef <- c(paste("C",1:k,sep=""),paste("S",1:k,sep=""))
                 
                 tmp.fit     <- calcFourierFit(ws, coeffs=f.coef, regs.hist=tmp.hhol, regs.proj=tmp.phol, k=40, h=39)

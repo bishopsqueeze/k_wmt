@@ -13,6 +13,7 @@ library(forecast)
 library(foreach)
 library(doMC)
 library(MASS)
+library(Hmisc)
 
 ##------------------------------------------------------------------
 ## Register the clusters
@@ -70,22 +71,16 @@ numTestSd		<- uniq.list$numTestSd
 numWeek         <- 52
 minTime         <- 5
 maxTime         <- 186
-minOrder        <- 5
-maxOrder        <- 40
+minOrder        <- 15
+maxOrder        <- 30
 
 ## minimum requirements for a fit
 minObs          <- 100
 
 ##------------------------------------------------------------------
-## Main
-##------------------------------------------------------------------
-
-##------------------------------------------------------------------
 ## Loop over all of the test s/d combos and compute the forecast
 ##------------------------------------------------------------------
-#fourierOrderArima.list <- foreach(i=1:numTestSd) %dopar% {
-for (i in 1:numTestSd) {
-
+fourierOrderArima.list <- foreach(i=1:numTestSd) %dopar% {
 
     ## grab s/d parameters from the clean.list()
 	tmp.sd		<- as.character(droplevels(uniqTestSd[i]))
@@ -101,53 +96,79 @@ for (i in 1:numTestSd) {
 	tmp.wgt		<- ifelse(tmp.dat$isholiday, 5, 1)
 	tmp.hist	<- tmp.dat[ (tmp.tr_fl == 1) , ]			## historical data
 	tmp.proj	<- tmp.dat[ (tmp.tr_fl == 0) , ]			## projection data
+    
+    ## add holiday flags
+    holiday.df$sb_m01                           <- Lag(holiday.df$sb_m00,-1)
+    holiday.df$sb_m01[is.na(holiday.df$sb_m01)] <- 0
 
 	## number of original observations
 	num.obs		<- sum(!is.na(tmp.hist$weekly_sales))
 
-	## define a filename for the plot
-	#tmp.folder		<- paste(wd, "/ForecastLmMulti/", substr(tmp.sd,1,2), "/", sep="")
-	#tmp.filename	<- paste(tmp.folder, tmp.sdName, ".ForecastLmMultiResults.pdf", sep="")
-	#dir.create(tmp.folder, showWarnings = FALSE)
-
-	## report progress
-	#cat("Processing: SD = ", tmp.sdName, "\n")
-
 	##------------------------------------------------------------------
 	## basic  projection
 	##------------------------------------------------------------------
-	if ( (tmp.store >= 1) & (tmp.dept == 72) ) {
+	if ( (tmp.store > 0) & (tmp.dept == 5) ) {
 		if (num.obs >= minObs) {
             
             ws      <- tmp.hist$ws.min10
-            tmp.fit <- calcFourierOrder(ws,  min.order=18, max.order=22, min.boxcox=0, max.boxcox=1)
-	
-			## plot the results
-			#pdf(tmp.filename)
-            #    plot(c(tmp.fit$x), type="n", main=tmp.sdName, xlab="Time Index", ylab="Weekly Sales")  ## null plot
-            #    points(tmp.fit$x, type="b", pch=20, col="grey", lwd=2)
-			#	#points(c(tmp.fit$fitted, tmp.fit$forecast), type="b", pch=1, col="red")
-            #    points(c(tmp.fit$fitted), type="b", pch=1, col="red")
-            #dev.off()
-			
-			## save the results
-            #fourierOrder.list[[tmp.sdName]] <- tmp.fit
-			
+
+            ##------------------------------------------------------------------
+            ## [+][d05]
+            ##------------------------------------------------------------------
+            if (tmp.dept == 5) {
+                tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("sb_m01","sb_m00","ea_m00","md_m00","fj_m00","td_m00","xm_m01")]
+
+            ##------------------------------------------------------------------
+            ## [+][d07] - "td_m00","td_p01" for separation
+            ##------------------------------------------------------------------
+            } else if (tmp.dept == 7) {
+                tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00","td_m00","td_p01")]
+
+            ##------------------------------------------------------------------
+            ## [+][d72] -
+            ##------------------------------------------------------------------
+            } else if (tmp.dept == 72) {
+                tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("sb_m00", "td_m00", "xm_m01")]
+                
+            ##------------------------------------------------------------------
+            ## [catch-all]
+            ##------------------------------------------------------------------
+            } else {
+                tmp.hhol <- NULL
+            }
+            
+            tmp.fit <- calcFourierOrder(ws, id=tmp.sdName, regs.hist=tmp.hhol, min.order=15, max.order=25, min.boxcox=0, max.boxcox=1)
+            
 		} else {
-		
-			## will hit if num.obs <= minObs
-			#fourierOrder.list[[tmp.sdName]] <- NULL
+
             tmp.fit <- NULL
 			
 		}
 	}
-    return(tmp.fit)
+    #return(tmp.fit)
 }
+
+##------------------------------------------------------------------
+## Load the results into a compact forms
+##------------------------------------------------------------------
+list.names  <- unlist(lapply(fourierOrderArima.list, function(x){x$id}))
+list.k      <- unlist(lapply(fourierOrderArima.list, function(x){x$k}))
+
+## matrix of k(s)
+cnt <- 1
+aic.mat <- matrix(, nrow=length(list.names), ncol=(maxOrder-minOrder+1))
+for (i in 1:length(fourierOrderArima.list)) {
+    if( !is.null(fourierOrderArima.list[[i]]) ) {
+        aic.mat[cnt,] <- fourierOrderArima.list[[i]]$res[,2]
+        cnt <- cnt + 1
+    }
+}
+
 
 ##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
-##save(fourierOrder.list, file="040_FourierOrderSearch_20140314.Rdata")
+save(list.names, list.k, aic.mat, fourierOrderArima.list, file="040.003_ArimaOrderSearch_Dept05.Rdata")
 
 
 

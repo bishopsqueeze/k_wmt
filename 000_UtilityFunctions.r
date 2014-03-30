@@ -391,7 +391,7 @@ genFourier <- function(t, terms, period) {
 ##------------------------------------------------------------------
 ## <function> :: calcFourierOrder
 ##------------------------------------------------------------------
-calcFourierOrder <- function(x, min.order=5, max.order=30, min.boxcox=0, max.boxcox=1, wgt=NULL) {
+calcFourierOrder <- function(x, id="s/d", regs.hist=NULL, min.order=5, max.order=30, min.boxcox=0, max.boxcox=1, wgt=NULL) {
 	
 	## do a box-cox transformation if all x > 0
 	if ( any(x < 0) ) {
@@ -410,9 +410,16 @@ calcFourierOrder <- function(x, min.order=5, max.order=30, min.boxcox=0, max.box
     
     ## compute even orders only
     for (i in seq(from=min.order, to=max.order, by=1)) {
-        
+
+        ## generate a data frame for the fit: x ~ t + fourier(k) + regressors
+        if ( !is.null(regs.hist) ) {
+            fit.df  <- data.frame(fourier(y, K=i), regs.hist)
+        } else {
+            fit.df  <- data.frame(fourier(y, K=i))
+        }
+            
         ## compute the arima fit
-        fit  <- auto.arima(y, xreg=fourier(y, K=i), seasonal=FALSE, trace=FALSE)
+        fit  <- auto.arima(y, xreg=as.matrix(fit.df), seasonal=FALSE, trace=FALSE)
         
         ## record results
         bestmat[(i-min.order+1),] <- c(i, fit$aicc)
@@ -421,11 +428,20 @@ calcFourierOrder <- function(x, min.order=5, max.order=30, min.boxcox=0, max.box
     
     ## identify the order that minimized the aicc & refit
     k       <- bestmat[ which( (bestmat[,2] == min(bestmat[,2])) ) , 1][1]
-    bestfit <- auto.arima(y, xreg=fourier(y, K=k), seasonal=FALSE, trace=FALSE)
+    
+    ## generate a data frame for the fit: x ~ t + fourier(k) + regressors
+    if ( !is.null(regs.hist) ) {
+        fit.df  <- data.frame(fourier(y, K=k), regs.hist)
+    } else {
+        fit.df  <- data.frame(fourier(y, K=k))
+    }
+    
+    ## perform the fit
+    bestfit <- auto.arima(y, xreg=as.matrix(fit.df), seasonal=FALSE, trace=FALSE)
     fitted	<- InvBoxCox(as.vector(fitted(bestfit)), lambda)
     
 	## return the original vector, the in-sample, out-of-sample, and box-cox parameter
-	return(list(x=orig.x, fitted=fitted, lambda=lambda, k=k, res=bestmat))
+	return(list(x=orig.x, id=id, fitted=fitted, lambda=lambda, k=k, res=bestmat))
 }
 
 ##########################################################################################
