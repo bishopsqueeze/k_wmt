@@ -25,7 +25,7 @@ wd	<- getwd()
 ##------------------------------------------------------------------
 ## Load development data
 ##------------------------------------------------------------------
-load("005_walmartCombinedData_20140314.Rdata")
+load("005_walmartCombinedData_20140326.Rdata")
 
 ##------------------------------------------------------------------
 ## Load model fit data
@@ -41,13 +41,13 @@ load("./Forecasts/041_ForecastFourier_All_Min100_20140314.Rdata")       ## fouri
 #load("041.01_VanillaFourier_All_Min100_20140314.Rdata")    ## vanilla.list (S011)
 #load("041.01_VanillaFourier_All_Min100_20140326.Rdata")    ## vanilla.list (S012)
 #load("./Forecasts/042_VanillaFourier_All_Min100_20140326.Rdata")        ## vanilla.list (S013)
-load("")    ## partical order serach based (S014)
+load("042_VanillaFourier_TOP10TEST.Rdata")                              ## partical order serach based (S014)
 load("./Forecasts/050_ForecastNweek_20140314.Rdata")                    ## nweek.list (semi-historical)
 
 ##------------------------------------------------------------------
 ## Source Utilities
 ##------------------------------------------------------------------
-source("/Users/alexstephens/Development/kaggle/walmart/code/999_UtilityFunctions.r")
+source("/Users/alexstephens/Development/kaggle/walmart/k_wmt/000_UtilityFunctions.r")
 
 ##------------------------------------------------------------------
 ## Constants
@@ -150,7 +150,7 @@ save(   median.list,
         vanilla.list,
         nweek.list,
         res.matrix,
-        file="999_CompareModels_S013_20140328.Rdata")
+        file="999_CompareModels_S014_20140331.Rdata")
 
 
 
