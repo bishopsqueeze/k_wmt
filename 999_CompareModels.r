@@ -40,7 +40,8 @@ load("./Forecasts/033_ForecastQrMulti_20140314.Rdata")                  ## qrMul
 load("./Forecasts/041_ForecastFourier_All_Min100_20140314.Rdata")       ## fourier.list
 #load("041.01_VanillaFourier_All_Min100_20140314.Rdata")    ## vanilla.list (S011)
 #load("041.01_VanillaFourier_All_Min100_20140326.Rdata")    ## vanilla.list (S012)
-load("./Forecasts/042_VanillaFourier_All_Min100_20140326.Rdata")        ## vanilla.list (S013)
+#load("./Forecasts/042_VanillaFourier_All_Min100_20140326.Rdata")        ## vanilla.list (S013)
+load("")    ## partical order serach based (S014)
 load("./Forecasts/050_ForecastNweek_20140314.Rdata")                    ## nweek.list (semi-historical)
 
 ##------------------------------------------------------------------

@@ -127,10 +127,6 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
 	tmp.wgt		<- ifelse(tmp.dat$isholiday, 5, 1)
 	tmp.hist	<- tmp.dat[ (tmp.tr_fl == 1) , ]			## historical data
 	tmp.proj	<- tmp.dat[ (tmp.tr_fl == 0) , ]			## projection data
-
-    ## grab fourier coefficients
-    #tmp.coef    <- orderCoef.list[[tmp.sdName]]$coef
-    #tmp.tval    <- orderCoef.list[[tmp.sdName]]$tval
     
 	## number of original observations
 	num.obs		<- sum(!is.na(tmp.hist$weekly_sales))
@@ -147,7 +143,7 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
 	##------------------------------------------------------------------
 	## basic stl projection
 	##------------------------------------------------------------------
-	if ( (tmp.store > 0) & (tmp.dept == 40) ) {
+	if ( (tmp.store > 0) & (tmp.dept > 0) ) {
 		if ((num.obs > minObs) & (tmp.sd != "43_28")) {
             if ( !is.null(order.list[[tmp.sdName]]) ) {
 
@@ -157,7 +153,8 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                 ws	<- tmp.dat$ws.min10[ (tmp.tr_fl == 1) ]     ## min10 because of BoxCox transform
 
                 ## grab the fourier order based on the order search
-                k   <- order.list[[tmp.sdName]]$k
+                ##k   <- order.list[[tmp.sdName]]$k
+                k <- 20
                 
                 ##------------------------------------------------------------------
                 ## Questionable whether or not the standard set of holiday flags
@@ -237,8 +234,8 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                 ##------------------------------------------------------------------
                 } else if (tmp.dept == 8) {
                     
-                    tmp.hhol     <- NULL
-                    tmp.phol     <- NULL
+                    tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
+                    tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m01")]
                     
                 ##------------------------------------------------------------------
                 ## [+][d09] - s33(use historical)
@@ -345,6 +342,8 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                 ##------------------------------------------------------------------
                 } else if (tmp.dept == 23) {
                     
+                    load("040.003_ArimaOrderSearch_Dept23.Rdata")
+                    k <- list.k[ which(list.names %in% tmp.sdName) ]
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("ea_m01","ea_m00","md_m00","fj_m00")]
                     
@@ -536,6 +535,9 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                 ## [***][d91] - ringing
                 ##------------------------------------------------------------------
                 } else if (tmp.dept == 91) {
+                    
+                    load("040.003_ArimaOrderSearch_Dept91.Rdata")
+                    k <- list.k[ which(list.names %in% tmp.sdName) ]
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m01")]
                     
@@ -636,7 +638,7 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
 ##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
-##save(vanilla.list, file="042_VanillaFourier_TOP10TEST.Rdata")
+save(vanilla.list, file="042_VanillaFourier_TOP10TEST.Rdata")
 
 ##------------------------------------------------------------------
 ## Close connection
