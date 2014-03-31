@@ -104,13 +104,14 @@ for (i in 1:length(fit.names)) {
 ##------------------------------------------------------------------
 #vanilla.list    <- list()
 writeLines(c(""), "forecastFourierParallel.txt")
+## report progress
+sink("forecastFourierParallel.txt", append=TRUE)
 
 ##------------------------------------------------------------------
 ## Loop over all of the test s/d combos and compute the forecast
 ##------------------------------------------------------------------
 #for (i in 1:numTestSd) {
 vanilla.list <- foreach(i=1:numTestSd) %dopar% {
-#vanilla.list <- foreach(i=1:100) %dopar% {
 
     ## grab s/d parameters from the clean.list()
 	tmp.sd		<- as.character(droplevels(uniqTestSd[i]))
@@ -146,12 +147,10 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
 	##------------------------------------------------------------------
 	## basic stl projection
 	##------------------------------------------------------------------
-	if ( (tmp.store > 0) & (tmp.dept > 0) ) {
+	if ( (tmp.store > 0) & (tmp.dept == 40) ) {
 		if ((num.obs > minObs) & (tmp.sd != "43_28")) {
             if ( !is.null(order.list[[tmp.sdName]]) ) {
 
-                ## report progress
-                sink("forecastFourierParallel.txt", append=TRUE)
                 cat("Processing: SD = ", tmp.sdName, "\n")
 
                 ## grab the data
@@ -182,6 +181,8 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                 ##------------------------------------------------------------------
                 } else if (tmp.dept == 2) {
                     
+                    load("040.003_ArimaOrderSearch_Dept02.Rdata")
+                    k <- list.k[ which(list.names %in% tmp.sdName) ]
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m01")]
                     
@@ -403,13 +404,23 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     tmp.hhol     <- NULL #holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00")]
                     tmp.phol     <- NULL #holiday.df[ (tmp.tr_fl == 0), c("ea_m01","ea_m00","md_m00","fj_m00")]
                     
+                ##------------------------------------------------------------------
+                ## [***][d38] -
+                ##------------------------------------------------------------------
                 } else if (tmp.dept == 38) {
                     
+                    load("040.003_ArimaOrderSearch_Dept38.Rdata")
+                    k <- list.k[ which(list.names %in% tmp.sdName) ]
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m01")]
                     
+                ##------------------------------------------------------------------
+                ## [***][d40] -
+                ##------------------------------------------------------------------
                 } else if (tmp.dept == 40) {
                     
+                    load("040.003_ArimaOrderSearch_Dept40.Rdata")
+                    k <- list.k[ which(list.names %in% tmp.sdName) ]
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m01")]
                     
@@ -521,6 +532,9 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","td_m01","td_m00","xm_m02","xm_m01","xm_m00")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("ea_m01","td_m01","td_m00","xm_m02","xm_m01","xm_m00")]
                     
+                ##------------------------------------------------------------------
+                ## [***][d91] - ringing
+                ##------------------------------------------------------------------
                 } else if (tmp.dept == 91) {
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m01")]
@@ -617,12 +631,17 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
         }
     }
 }
+#names(vanilla.list) <- uniqTestSd
 
 ##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
 ##save(vanilla.list, file="042_VanillaFourier_TOP10TEST.Rdata")
 
+##------------------------------------------------------------------
+## Close connection
+##------------------------------------------------------------------
+sink()
 
 
 

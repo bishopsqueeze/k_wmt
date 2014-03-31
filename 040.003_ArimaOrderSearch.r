@@ -72,7 +72,7 @@ numWeek         <- 52
 minTime         <- 5
 maxTime         <- 186
 minOrder        <- 15
-maxOrder        <- 25
+maxOrder        <- 30
 
 ## minimum requirements for a fit
 minObs          <- 100
@@ -82,6 +82,8 @@ minObs          <- 100
 ##------------------------------------------------------------------
 #vanilla.list    <- list()
 writeLines(c(""), "arimaOrderSearchParallel.txt")
+## report progress
+sink("log.txt", append=TRUE)
 
 ##------------------------------------------------------------------
 ## Loop over all of the test s/d combos and compute the forecast
@@ -113,11 +115,9 @@ fourierOrderArima.list <- foreach(i=1:numTestSd) %dopar% {
 	##------------------------------------------------------------------
 	## basic  projection
 	##------------------------------------------------------------------
-	if ( (tmp.store > 0) & (tmp.dept == 90) ) {
+	if ( (tmp.store > 0) & (tmp.dept == 91) ) {
 		if (num.obs >= minObs) {
 
-            ## report progress
-            sink("log.txt", append=TRUE)
             cat("Processing: SD = ", tmp.sdName, "\n")
 
             ## grab the sales data
@@ -128,6 +128,12 @@ fourierOrderArima.list <- foreach(i=1:numTestSd) %dopar% {
             ##------------------------------------------------------------------
             if (tmp.dept == 1) {
                 tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("sb_m00","va_m00","ea_m01","ea_m00","ha_m01","ha_m00","xm_m02","xm_m01")]
+                
+            ##------------------------------------------------------------------
+            ## [***][d02] -
+            ##------------------------------------------------------------------
+            } else if (tmp.dept == 2) {
+                tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
                 
             ##------------------------------------------------------------------
             ## [***][d03] -
@@ -160,11 +166,17 @@ fourierOrderArima.list <- foreach(i=1:numTestSd) %dopar% {
                 tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("sb_m00","va_m00","ea_m00","ha_m00")]
                 
             ##------------------------------------------------------------------
-            ## [][d38] -
+            ## [***][d38] -
             ##------------------------------------------------------------------
             } else if (tmp.dept == 38) {
                 tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
 
+            ##------------------------------------------------------------------
+            ## [][d40] -
+            ##------------------------------------------------------------------
+            } else if (tmp.dept == 40) {
+                tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
+                
             ##------------------------------------------------------------------
             ## [***][d72] -
             ##------------------------------------------------------------------
@@ -177,6 +189,12 @@ fourierOrderArima.list <- foreach(i=1:numTestSd) %dopar% {
             } else if (tmp.dept == 90) {
                 tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","td_m01","td_m00","xm_m02","xm_m01","xm_m00")]
                 
+            ##------------------------------------------------------------------
+            ## [***][d91] -
+            ##------------------------------------------------------------------
+            } else if (tmp.dept == 91) {
+                tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
+
             ##------------------------------------------------------------------
             ## [***][d92] - (similar to d90)
             ##------------------------------------------------------------------
@@ -227,9 +245,11 @@ for (i in 1:length(fourierOrderArima.list)) {
 ##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
-save(list.names, list.k, aic.mat, fourierOrderArima.list, file="040.003_ArimaOrderSearch_Dept90.Rdata")
+save(list.names, list.k, aic.mat, fourierOrderArima.list, file="040.003_ArimaOrderSearch_Dept91.Rdata")
 
-
-
+##------------------------------------------------------------------
+## Close connection
+##------------------------------------------------------------------
+sink()
 
 
