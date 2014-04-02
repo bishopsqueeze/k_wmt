@@ -143,7 +143,7 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
 	##------------------------------------------------------------------
 	## basic stl projection
 	##------------------------------------------------------------------
-	if ( (tmp.store > 0) & (tmp.dept > 0) ) {
+	if ( (tmp.store > 0) & (tmp.dept %in% c(6,27)) ) {
 		if ((num.obs > minObs) & (tmp.sd != "43_28")) {
             if ( !is.null(order.list[[tmp.sdName]]) ) {
 
@@ -198,6 +198,8 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                 ##------------------------------------------------------------------
                 } else if (tmp.dept == 4) {
                     
+                    load("040.003_ArimaOrderSearch_Dept04.10.18.34.56.67.79.Rdata")
+                    k <- list.k[ which(list.names %in% tmp.sdName) ]
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("sb_m00","ea_m00","md_m00","fj_m00","td_m00","xm_m01")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("sb_m00","ea_m00","md_m00","fj_m00","td_m00","xm_m01")]
                     
@@ -212,10 +214,12 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("sb_m01","sb_m00","ea_m00","md_m00","fj_m00","td_m00","xm_m01")]
 
                 ##------------------------------------------------------------------
-                ## [~][d06] - can revisit, since there are a low of downward trends
+                ## [~][d06] -
                 ##------------------------------------------------------------------
                 } else if (tmp.dept == 6) {
                     
+                    load("040.003_ArimaOrderSearch_Dept06.27.Rdata")
+                    k <- list.k[ which(list.names %in% tmp.sdName) ]
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("mo_m00","fj_m00","td_m00","xm_m02","xm_m01")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("mo_m00","fj_m00","td_m00","xm_m02","xm_m01")]
                     
@@ -254,6 +258,8 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                 ##------------------------------------------------------------------
                 } else if (tmp.dept == 10) {
                     
+                    load("040.003_ArimaOrderSearch_Dept04.10.18.34.56.67.79.Rdata")
+                    k <- list.k[ which(list.names %in% tmp.sdName) ]
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","td_m01","td_m00","xm_m01")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("ea_m01","ea_m00","td_m01","td_m00","xm_m01")]
                     
@@ -310,15 +316,17 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                 ##------------------------------------------------------------------
                 } else if (tmp.dept == 17) {
                     
-                    tmp.hhol     <- NULL
-                    tmp.phol     <- NULL
+                    load("040.003_ArimaOrderSearch_Dept17.Rdata")
+                    k <- list.k[ which(list.names %in% tmp.sdName) ]
+                    tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
+                    tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m01")]
                     
                 ##------------------------------------------------------------------
                 ## [+][d18] - hyperseasonal
                 ##------------------------------------------------------------------
                 } else if (tmp.dept == 18) {
                     
-                    load("040.003_ArimaOrderSearch_Dept18.Rdata")
+                    load("040.003_ArimaOrderSearch_Dept04.10.18.34.56.67.79.Rdata")
                     k <- list.k[ which(list.names %in% tmp.sdName) ]
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("sb_m00","va_m00","ea_m00","ha_m00")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("sb_m00","va_m00","ea_m00","ha_m00")]
@@ -382,7 +390,17 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("ea_m01","ea_m00","md_m00","fj_m00")]
-## [!!!][d27] - fit; spikes
+                    
+                ##------------------------------------------------------------------
+                ## [+~][d27] -
+                ##------------------------------------------------------------------
+                } else if (tmp.dept == 27) {
+                    
+                    load("040.003_ArimaOrderSearch_Dept06.27.Rdata")
+                    k <- list.k[ which(list.names %in% tmp.sdName) ]
+                    tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("sb_m00","td_m01","td_m00","xm_m01")]
+                    tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("sb_m00","td_m01","td_m00","xm_m01")]
+
 ## [!!!][d28] - fit
 
                 ##------------------------------------------------------------------
@@ -419,8 +437,10 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                 ##------------------------------------------------------------------
                 } else if (tmp.dept == 34) {
                     
-                    tmp.hhol     <- NULL #holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00")]
-                    tmp.phol     <- NULL #holiday.df[ (tmp.tr_fl == 0), c("ea_m01","ea_m00","md_m00","fj_m00")]
+                    load("040.003_ArimaOrderSearch_Dept04.10.18.34.56.67.79.Rdata")
+                    k <- list.k[ which(list.names %in% tmp.sdName) ]
+                    tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00")]
+                    tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("ea_m01","ea_m00","md_m00","fj_m00")]
  
 ## [!!!][d35] - fit
 ## [!!!][d36] - fit
@@ -484,7 +504,16 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     k <- list.k[ which(list.names %in% tmp.sdName) ]
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m02","xm_m01")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m02","xm_m01")]
- ## [!!!][d56] - peculiar; needs a fit
+                    
+                ##------------------------------------------------------------------
+                ## [***][d56] -
+                ##------------------------------------------------------------------
+                } else if (tmp.dept == 56) {
+                    
+                    load("040.003_ArimaOrderSearch_Dept04.10.18.34.56.67.79.Rdata")
+                    k <- list.k[ which(list.names %in% tmp.sdName) ]
+                    tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m00","xm_m02","xm_m01")]
+                    tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("td_m00","xm_m02","xm_m01")]
  
                 ##------------------------------------------------------------------
                 ## [~][d58] -
@@ -494,7 +523,7 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     tmp.hhol     <- NULL #holiday.df[ (tmp.tr_fl == 1), c("ld_m01","td_m00","xm_m02","xm_m01")]
                     tmp.phol     <- NULL #holiday.df[ (tmp.tr_fl == 0), c("ld_m01","td_m00","xm_m02","xm_m01")]
 ## [!!!][d59] - very peculiar; 1/2 flatline
- ## [!!!][d60] - marginal
+## [!!!][d60] - marginal
 
                 ##------------------------------------------------------------------
                 ## [+][d65] -
@@ -503,8 +532,17 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     
                     tmp.hhol     <- NULL
                     tmp.phol     <- NULL
+ 
+                ##------------------------------------------------------------------
+                ## [***][d67] -
+                ##------------------------------------------------------------------
+                } else if (tmp.dept == 67) {
                     
- ## [!!!][d67] - spiked; needs a review
+                    load("040.003_ArimaOrderSearch_Dept04.10.18.34.56.67.79.Rdata")
+                    k <- list.k[ which(list.names %in% tmp.sdName) ]
+                    tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("sb_m00","va_m00","ea_m01","ea_m00","ha_m01","ha_m00","xm_m02","xm_m01")]
+                    tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("sb_m00","va_m00","ea_m01","ea_m00","ha_m01","ha_m00","xm_m02","xm_m01")]
+                    
  ## [!!!][d71] - needs a review
  
                 ##------------------------------------------------------------------
@@ -525,14 +563,16 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("fj_m00","td_m01","td_m00","xm_m01")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("fj_m00","td_m01","td_m00","xm_m01")]
       
- ## [!!!][d77] - missings
-  ## [!!!][d78] - missings
+## [!!!][d77] - missings
+## [!!!][d78] - missings
   
                 ##------------------------------------------------------------------
                 ## [+][d79] -
                 ##------------------------------------------------------------------
                 } else if (tmp.dept == 79) {
                     
+                    load("040.003_ArimaOrderSearch_Dept04.10.18.34.56.67.79.Rdata")
+                    k <- list.k[ which(list.names %in% tmp.sdName) ]
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("xm_m00")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("xm_m00")]
                     
@@ -690,6 +730,8 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                 ##------------------------------------------------------------------
                 ## return a null fit
                 ##------------------------------------------------------------------
+                tmp.fit <- NULL
+                save(tmp.fit, file=paste("./TEST_FILES/",tmp.sdName,".Rdata",sep=""))   ## backup
                 tmp.fit <- NULL
 			
             }
