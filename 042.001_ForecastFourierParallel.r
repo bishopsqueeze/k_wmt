@@ -110,7 +110,7 @@ sink("forecastFourierParallel.txt", append=TRUE)
 ##------------------------------------------------------------------
 ## Loop over all of the test s/d combos and compute the forecast
 ##------------------------------------------------------------------
-#for (i in 1:numTestSd) {
+vanilla.list <- list()
 vanilla.list <- foreach(i=1:numTestSd) %dopar% {
 
     ## grab s/d parameters from the clean.list()
@@ -322,7 +322,9 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     k <- list.k[ which(list.names %in% tmp.sdName) ]
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("sb_m00","va_m00","ea_m00","ha_m00")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("sb_m00","va_m00","ea_m00","ha_m00")]
-                    
+        
+## [!!!][d19] - marginal
+
                 ##------------------------------------------------------------------
                 ## [+~][d20] -
                 ##------------------------------------------------------------------
@@ -380,7 +382,9 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("ea_m01","ea_m00","md_m00","fj_m00")]
-                    
+## [!!!][d27] - fit; spikes
+## [!!!][d28] - fit
+
                 ##------------------------------------------------------------------
                 ## [+~][d29] -
                 ##------------------------------------------------------------------
@@ -389,6 +393,9 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("ea_m01","ea_m00","md_m00","fj_m00")]
                    
+## [!!!][d30] - fit
+## [!!!][d31] - fit; holiday spikes
+
                 ##------------------------------------------------------------------
                 ## [+][d32] -
                 ##------------------------------------------------------------------
@@ -414,7 +421,11 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     
                     tmp.hhol     <- NULL #holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00")]
                     tmp.phol     <- NULL #holiday.df[ (tmp.tr_fl == 0), c("ea_m01","ea_m00","md_m00","fj_m00")]
-                    
+ 
+## [!!!][d35] - fit
+## [!!!][d36] - fit
+## [!!!][d37] - marginal
+  
                 ##------------------------------------------------------------------
                 ## [***][d38] -
                 ##------------------------------------------------------------------
@@ -424,7 +435,7 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     k <- list.k[ which(list.names %in% tmp.sdName) ]
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m01")]
-                    
+## [!!!][d39] - skip
                 ##------------------------------------------------------------------
                 ## [***][d40] -
                 ##------------------------------------------------------------------
@@ -435,6 +446,13 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m01")]
                     
+## [!!!][d41] - fit
+## [!!!][d42] - fit
+## [!!!][d43] - skip
+## [!!!][d44] - fit
+## [!!!][d45] - skip
+
+
                 ##------------------------------------------------------------------
                 ## [***][d46] -
                 ##------------------------------------------------------------------
@@ -444,7 +462,8 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     k <- list.k[ which(list.names %in% tmp.sdName) ]
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m01")]
-                    
+## [!!!][d47] - skip
+## [!!!][d48] - fit
                 ##------------------------------------------------------------------
                 ## [+][d49] -
                 ##------------------------------------------------------------------
@@ -452,7 +471,10 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     
                     tmp.hhol     <- NULL #holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
                     tmp.phol     <- NULL #holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m01")]
-                    
+## [!!!][d50] - fit
+## [!!!][d51] - skip
+## [!!!][d52] - needs a fit
+## [!!!][d54] - marginal
                 ##------------------------------------------------------------------
                 ## [***][d55] -
                 ##------------------------------------------------------------------
@@ -462,7 +484,8 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     k <- list.k[ which(list.names %in% tmp.sdName) ]
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m02","xm_m01")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m02","xm_m01")]
-                    
+ ## [!!!][d56] - peculiar; needs a fit
+ 
                 ##------------------------------------------------------------------
                 ## [~][d58] -
                 ##------------------------------------------------------------------
@@ -470,7 +493,9 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     
                     tmp.hhol     <- NULL #holiday.df[ (tmp.tr_fl == 1), c("ld_m01","td_m00","xm_m02","xm_m01")]
                     tmp.phol     <- NULL #holiday.df[ (tmp.tr_fl == 0), c("ld_m01","td_m00","xm_m02","xm_m01")]
-                    
+## [!!!][d59] - very peculiar; 1/2 flatline
+ ## [!!!][d60] - marginal
+
                 ##------------------------------------------------------------------
                 ## [+][d65] -
                 ##------------------------------------------------------------------
@@ -479,6 +504,9 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     tmp.hhol     <- NULL
                     tmp.phol     <- NULL
                     
+ ## [!!!][d67] - spiked; needs a review
+ ## [!!!][d71] - needs a review
+ 
                 ##------------------------------------------------------------------
                 ## [***][d72] -
                 ##------------------------------------------------------------------
@@ -496,7 +524,10 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("fj_m00","td_m01","td_m00","xm_m01")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("fj_m00","td_m01","td_m00","xm_m01")]
-                    
+      
+ ## [!!!][d77] - missings
+  ## [!!!][d78] - missings
+  
                 ##------------------------------------------------------------------
                 ## [+][d79] -
                 ##------------------------------------------------------------------
@@ -530,7 +561,10 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     k <- list.k[ which(list.names %in% tmp.sdName) ]
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("ea_m00","fj_m02","fj_m01","ld_m02","ld_m01")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("ea_m00","fj_m02","fj_m01","ld_m02","ld_m01")]
-                    
+ 
+ ## [!!!][d83] - needs a review
+ ## [!!!][d85] - needs a review
+ 
                 ##------------------------------------------------------------------
                 ## [+][d87] -
                 ##------------------------------------------------------------------
@@ -616,7 +650,10 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     
                     tmp.hhol     <- NULL #holiday.df[ (tmp.tr_fl == 1), c("xm_m00")]
                     tmp.phol     <- NULL #holiday.df[ (tmp.tr_fl == 0), c("xm_m00")]
-                    
+ 
+ ## [!!!][d98] - needs a fit
+ ## [!!!][d99] - N/A mostly missing
+ 
                 ##------------------------------------------------------------------
                 ## All Others
                 ##------------------------------------------------------------------
@@ -645,6 +682,7 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                 ##------------------------------------------------------------------
                 ## return the fit
                 ##------------------------------------------------------------------
+                save(tmp.fit, file=paste("./TEST_FILES/",tmp.sdName,".Rdata",sep=""))   ## backup
                 tmp.fit <- tmp.fit
 			
             } else {
@@ -658,12 +696,12 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
         }
     }
 }
-names(vanilla.list) <- paste("SD_",uniqTestSd,sep="")
+#names(vanilla.list) <- paste("SD_",uniqTestSd,sep="")
 
 ##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
-save(vanilla.list, file="042_VanillaFourier_TOP10TEST.Rdata")
+##save(vanilla.list, file="042_VanillaFourier_TOP10TEST.Rdata")
 
 ##------------------------------------------------------------------
 ## Close connection
