@@ -42,7 +42,11 @@ load("./Forecasts/041_ForecastFourier_All_Min100_20140314.Rdata")       ## fouri
 #load("041.01_VanillaFourier_All_Min100_20140326.Rdata")    ## vanilla.list (S012)
 #load("./Forecasts/042_VanillaFourier_All_Min100_20140326.Rdata")        ## vanilla.list (S013)
 load("042_VanillaFourier_TOP10TEST.Rdata")                              ## partical order serach based (S014)
-load("./Forecasts/050_ForecastNweek_20140314.Rdata")                    ## nweek.list (semi-historical)
+#load("./Forecasts/050_ForecastNweek_20140314.Rdata")                    ## nweek.list (semi-historical)
+load("050.002_RqForecastNweek_20140326.Rdata")                          ## nweek.list (semi-historical)
+nweek_trend.list    <- nweek.list; rm(nweek.list)
+load("050.003_RqForecastNweekNoTrend_20140326.Rdata")                   ## nweek.list (semi-historical, no-trend)
+nweek_notrend.list  <- nweek.list; rm(nweek.list)
 
 ##------------------------------------------------------------------
 ## Source Utilities
@@ -80,10 +84,10 @@ minObs          <- 50
 ##------------------------------------------------------------------
 ## Use <uniqTestSd> to align results data
 ##------------------------------------------------------------------
-res.col                 <- 10
+res.col                 <- 11
 res.matrix              <- matrix(, nrow=numTestSd, ncol=res.col)
 rownames(res.matrix)    <- uniqTestSd
-colnames(res.matrix)    <- c("median", "mean", "stl", "tslm", "lm", "lmmulti", "qrmulti", "fourier", "vanilla", "nweek")
+colnames(res.matrix)    <- c("median", "mean", "stl", "tslm", "lm", "lmmulti", "qrmulti", "fourier", "vanilla", "nweek", "nweek.notrend")
 names.sd                <- paste("SD_",uniqTestSd,sep="")
 
 ## median
@@ -132,9 +136,14 @@ vanilla.idx     <- which( names.sd %in% rownames(vanilla.mae))
 res.matrix[vanilla.idx, 9]  <- vanilla.mae
 
 ## nweek (part copy of history, part regression) -- used for sparse histories
-nweek.mae     <- do.call(rbind, lapply(nweek.list, function(x){x$mae}))
-nweek.idx     <- which( names.sd %in% rownames(nweek.mae))
-res.matrix[ nweek.idx, 10]  <- 99999
+nweek_trend.mae     <- do.call(rbind, lapply(nweek_trend.list, function(x){x$mae}))
+nweek_trend.idx     <- which( names.sd %in% rownames(nweek_trend.mae))
+res.matrix[ nweek_trend.idx, 10]  <- nweek_trend.mae
+
+## nweek (part copy of history, part regression) -- used for sparse histories
+nweek_notrend.mae     <- do.call(rbind, lapply(nweek_notrend.list, function(x){x$mae}))
+nweek_notrend.idx     <- which( names.sd %in% rownames(nweek_notrend.mae))
+res.matrix[ nweek_notrend.idx, 11]  <- nweek_notrend.mae
 
 ##------------------------------------------------------------------
 ## Save image
@@ -148,9 +157,9 @@ save(   median.list,
         qrMulti.list,
         fourier.list,
         vanilla.list,
-        nweek.list,
+        nweek_trend.list, nweek_notrend.list,
         res.matrix,
-        file="999_CompareModels_S014_20140331.Rdata")
+        file="999_CompareModels_S014_20140401.Rdata")
 
 
 
