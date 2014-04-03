@@ -274,7 +274,7 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("md_m00","fj_m01","fj_m00","td_m01","td_m00","xm_m01")]
                     
                 ##------------------------------------------------------------------
-                ## [+][d12] - no real spikes
+## [+][d12] - no real spikes
                 ##------------------------------------------------------------------
                 } else if (tmp.dept == 12) {
                     
@@ -372,8 +372,8 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                 ##------------------------------------------------------------------
                 } else if (tmp.dept == 24) {
                     
-                    tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00")]
-                    tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("ea_m01","ea_m00","md_m00","fj_m00")]
+                    tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00","td_m00","xm_m01")]
+                    tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("ea_m01","ea_m00","md_m00","fj_m00","td_m00","xm_m01")]
                     
                 ##------------------------------------------------------------------
                 ## [+~][d25] -
@@ -388,8 +388,8 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                 ##------------------------------------------------------------------
                 } else if (tmp.dept == 26) {
                     
-                    tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00")]
-                    tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("ea_m01","ea_m00","md_m00","fj_m00")]
+                    tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00","td_m00","xm_m01")]
+                    tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("ea_m01","ea_m00","md_m00","fj_m00","td_m00","xm_m01")]
                     
                 ##------------------------------------------------------------------
                 ## [+~][d27] -
@@ -401,8 +401,14 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("sb_m00","td_m01","td_m00","xm_m01")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("sb_m00","td_m01","td_m00","xm_m01")]
 
-## [!!!][d28] - fit
-
+##------------------------------------------------------------------
+## [+~][d28] -
+##------------------------------------------------------------------
+                } else if (tmp.dept == 28) {
+                    
+                    tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
+                    tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m01")]
+                    
                 ##------------------------------------------------------------------
                 ## [+~][d29] -
                 ##------------------------------------------------------------------
@@ -411,8 +417,21 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("ea_m01","ea_m00","md_m00","fj_m00")]
                    
-## [!!!][d30] - fit
-## [!!!][d31] - fit; holiday spikes
+##------------------------------------------------------------------
+## [+~][d30] -
+##------------------------------------------------------------------
+                } else if (tmp.dept == 30) {
+                    
+                    tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m01")]
+                    tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("td_m01","td_m00","xm_m01")]
+
+##------------------------------------------------------------------
+## [+~][d31] -
+##------------------------------------------------------------------
+                } else if (tmp.dept == 31) {
+                    
+                    tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("sb_m00","va_m00","ea_m01","ea_m00","md_m00","ld_m02","ld_m01","xm_m01")]
+                    tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("sb_m00","va_m00","ea_m01","ea_m00","md_m00","ld_m02","ld_m01","xm_m01")]
 
                 ##------------------------------------------------------------------
                 ## [+][d32] -
@@ -424,13 +443,13 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00")]
                     tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("ea_m01","ea_m00","md_m00","fj_m00")]
                     
-                ##------------------------------------------------------------------
-                ## [+~][d33] -
-                ##------------------------------------------------------------------
+##------------------------------------------------------------------
+## [+~][d33] -
+##------------------------------------------------------------------
                 } else if (tmp.dept == 33) {
                     
-                    tmp.hhol     <- NULL #holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00")]
-                    tmp.phol     <- NULL #holiday.df[ (tmp.tr_fl == 0), c("ea_m01","ea_m00","md_m00","fj_m00")]
+                    tmp.hhol     <- holiday.df[ (tmp.tr_fl == 1), c("sb_m00","ea_m00","md_m00","ld_m03","ld_m02","ld_m01","td_m01","td_m00","xm_m02","xm_m01")]
+                    tmp.phol     <- holiday.df[ (tmp.tr_fl == 0), c("sb_m00","ea_m00","md_m00","ld_m03","ld_m02","ld_m01","td_m01","td_m00","xm_m02","xm_m01")]
                     
                 ##------------------------------------------------------------------
                 ## [+][d34] -
@@ -495,6 +514,7 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
 ## [!!!][d51] - skip
 ## [!!!][d52] - needs a fit
 ## [!!!][d54] - marginal
+
                 ##------------------------------------------------------------------
                 ## [***][d55] -
                 ##------------------------------------------------------------------
@@ -522,6 +542,7 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
                     
                     tmp.hhol     <- NULL #holiday.df[ (tmp.tr_fl == 1), c("ld_m01","td_m00","xm_m02","xm_m01")]
                     tmp.phol     <- NULL #holiday.df[ (tmp.tr_fl == 0), c("ld_m01","td_m00","xm_m02","xm_m01")]
+                    
 ## [!!!][d59] - very peculiar; 1/2 flatline
 ## [!!!][d60] - marginal
 
