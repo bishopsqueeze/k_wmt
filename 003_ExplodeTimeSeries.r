@@ -193,17 +193,55 @@ for (i in 1:numSd) {
     #tmp.proto$ndcpi         <- scaleData(c(0,diff(tmp.proto$cpi)))     ## drop b/c interpolated
     tmp.proto$nunemp        <- scale(tmp.proto$unemp)
     #tmp.proto$ndunemp       <- scaleData(c(0,diff(tmp.proto$unemp)))   ## drop b/c slowly varying
-        
+    
+    ##--------------------------------------------------------------
+    ## back-fill nweek data
+    ##--------------------------------------------------------------
+    ## markdown 1
+    bad.md1         <- which(is.na(tmp.proto$markdown1))
+    bad.nweek       <- tmp.proto$nweek[bad.md1]
+    tmp.md1         <- aggregate(markdown1 ~ nweek, data=tmp.proto, FUN=mean)
+    tmp.proto$nmd1           <- tmp.proto$markdown1
+    tmp.proto$nmd1[bad.md1]  <- tmp.md1[bad.nweek,2]
+
+    ## markdown 1
+    bad.md2         <- which(is.na(tmp.proto$markdown2))
+    bad.nweek       <- tmp.proto$nweek[bad.md2]
+    tmp.md2         <- aggregate(markdown2 ~ nweek, data=tmp.proto, FUN=mean)
+    tmp.proto$nmd2           <- tmp.proto$markdown2
+    tmp.proto$nmd2[bad.md2]  <- tmp.md2[bad.nweek,2]
+
+    ## markdown 1
+    bad.md3         <- which(is.na(tmp.proto$markdown3))
+    bad.nweek       <- tmp.proto$nweek[bad.md3]
+    tmp.md3         <- aggregate(markdown3 ~ nweek, data=tmp.proto, FUN=mean)
+    tmp.proto$nmd3           <- tmp.proto$markdown3
+    tmp.proto$nmd3[bad.md3]  <- tmp.md3[bad.nweek,2]
+
+    ## markdown 1
+    bad.md4         <- which(is.na(tmp.proto$markdown4))
+    bad.nweek       <- tmp.proto$nweek[bad.md4]
+    tmp.md4         <- aggregate(markdown4 ~ nweek, data=tmp.proto, FUN=mean)
+    tmp.proto$nmd4           <- tmp.proto$markdown4
+    tmp.proto$nmd4[bad.md4]  <- tmp.md4[bad.nweek,2]
+
+    ## markdown 1
+    bad.md5         <- which(is.na(tmp.proto$markdown5))
+    bad.nweek       <- tmp.proto$nweek[bad.md5]
+    tmp.md5         <- aggregate(markdown5 ~ nweek, data=tmp.proto, FUN=mean)
+    tmp.proto$nmd5           <- tmp.proto$markdown5
+    tmp.proto$nmd5[bad.md5]  <- tmp.md5[bad.nweek,2]
+
     ##--------------------------------------------------------------
     ## zero-fill and scale markdown data [???]
     ##--------------------------------------------------------------
     
     ## zero-fill
-    tmp.proto$nmd1          <- ifelse(is.na(tmp.proto$markdown1), 0, tmp.proto$markdown1)
-    tmp.proto$nmd2          <- ifelse(is.na(tmp.proto$markdown2), 0, tmp.proto$markdown2)
-    tmp.proto$nmd3          <- ifelse(is.na(tmp.proto$markdown3), 0, tmp.proto$markdown3)
-    tmp.proto$nmd4          <- ifelse(is.na(tmp.proto$markdown4), 0, tmp.proto$markdown4)
-    tmp.proto$nmd5          <- ifelse(is.na(tmp.proto$markdown5), 0, tmp.proto$markdown5)
+    tmp.proto$nmd1          <- ifelse(is.na(tmp.proto$nmd1), 0, tmp.proto$nmd1)
+    tmp.proto$nmd2          <- ifelse(is.na(tmp.proto$nmd2), 0, tmp.proto$nmd2)
+    tmp.proto$nmd3          <- ifelse(is.na(tmp.proto$nmd3), 0, tmp.proto$nmd3)
+    tmp.proto$nmd4          <- ifelse(is.na(tmp.proto$nmd4), 0, tmp.proto$nmd4)
+    tmp.proto$nmd5          <- ifelse(is.na(tmp.proto$nmd5), 0, tmp.proto$nmd5)
     
     ## get the maximum value of all markdowns for normalization
     maxmd   <- max( tmp.proto[ ,c("nmd1","nmd2","nmd3","nmd4","nmd5")], na.rm=TRUE)
@@ -281,5 +319,5 @@ if ((i %% 100) == 0) { cat("iteration %d", i, "\n") }
 ##------------------------------------------------------------------
 ## Step 3:  Save the list to a file
 ##------------------------------------------------------------------
-##save(comb, train, test, stores, features, uniq.list, sd.list, prototype.date, file="003_walmartCombinedData.Rdata")
+save(comb, train, test, stores, features, uniq.list, sd.list, prototype.date, file="003_walmartCombinedData.Rdata")
 

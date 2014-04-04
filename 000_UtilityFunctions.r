@@ -449,6 +449,10 @@ calcFourierOrder <- function(x, id="s/d", regs.hist=NULL, min.order=5, max.order
 ##------------------------------------------------------------------
 ## <function> :: calcGlmOrderSearch
 ##------------------------------------------------------------------
+## Use linear regression to get a ballpark estimate of the number of
+## harmonics to use in subsequent fits.  This approach is based on
+## the procedure outlined in the de Silvo (?) thesis.
+##------------------------------------------------------------------
 calcGlmOrderSearch <- function(x, min.order=5, max.order=30, min.boxcox=0, max.boxcox=1, wgt=NULL) {
 	
 	## do a box-cox transformation if all x > 0
@@ -466,7 +470,7 @@ calcGlmOrderSearch <- function(x, min.order=5, max.order=30, min.boxcox=0, max.b
     ## define a placeholder matrix for results
     bestmat <- matrix(, nrow=(max.order-min.order+1), ncol=2)
     
-    ## compute even orders only
+    ## increment the number of harmonics and fit (see the de Silvo thesis)
     for (i in seq(from=min.order, to=max.order, by=1)) {
     
         ## generate a data frame for the fit: x ~ t + fourier(k)
@@ -486,9 +490,18 @@ calcGlmOrderSearch <- function(x, min.order=5, max.order=30, min.boxcox=0, max.b
     fitted	<- InvBoxCox(as.vector(fitted(bestfit)), lambda)
     fit.sum <- summary(bestfit)
     
-	## return the original vector, the in-sample, out-of-sample, and box-cox parameter
-	return(list(x=orig.x, fitted=fitted, lambda=lambda, k=k, res=bestmat, aic=bestfit$aic,
-                coef=coefficients(bestfit), sderr=fit.sum$coefficients[,2], tval=fit.sum$coefficients[,3]))
+	## return the results
+	return(list(    x=orig.x,
+                    fitted=fitted,
+                    resid=fitted-orig.x,
+                    lambda=lambda,
+                    k=k,
+                    res=bestmat,
+                    aic=bestfit$aic,
+                    coef=coefficients(bestfit),
+                    coef.names=names(coefficients(bestfit)),
+                    sderr=fit.sum$coefficients[,2],
+                    tval=fit.sum$coefficients[,3]))
 }
 
 ##########################################################################################

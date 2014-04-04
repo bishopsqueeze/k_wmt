@@ -28,7 +28,7 @@ load("003_walmartCombinedData.Rdata")
 ##------------------------------------------------------------------
 ## Source Utilities
 ##------------------------------------------------------------------
-source("/Users/alexstephens/Development/kaggle/walmart/code/000_UtilityFunctions.r")
+source("/Users/alexstephens/Development/kaggle/walmart/k_wmt/000_UtilityFunctions.r")
 
 ##------------------------------------------------------------------
 ## Constants
@@ -115,9 +115,9 @@ fj_m00	<- createDateFlags(d, time.df$date, n.lag=0)
 fj_p01	<- createDateFlags(d, time.df$date, n.lag=+1)
 
 ##******************************************************************
-## Back-to_school c("2010-08-31", "2011-08-31", "2012-08-31", "2013-08-31")
+## Back-to_school c("2010-08-31", "2011-08-31", "2012-08-31")
 ##******************************************************************
-d 		<- as.Date(c("2010-08-31", "2011-08-31", "2012-08-31", "2013-08-31"))
+d 		<- as.Date(c("2010-08-31", "2011-08-31", "2012-08-31"))
 bs_m02	<- createDateFlags(d, time.df$date, n.lag=-2)
 bs_m01	<- createDateFlags(d, time.df$date, n.lag=-1)
 bs_m00	<- createDateFlags(d, time.df$date, n.lag=0)
@@ -148,7 +148,7 @@ d 		<- as.Date(c("2010-11-26", "2011-11-25", "2012-11-23"))
 td_m01	<- createDateFlags(d, time.df$date, n.lag=-1)
 td_m00	<- createDateFlags(d, time.df$date, n.lag=0)
 td_p01	<- createDateFlags(d, time.df$date, n.lag=1)
-
+td_p02	<- createDateFlags(d, time.df$date, n.lag=2)
 
 ##******************************************************************
 ## Christmas c("2010-12-25", "2011-12-25", "2012-12-25")
@@ -165,15 +165,16 @@ xm_p02	<- createDateFlags(d, time.df$date, n.lag=2)
 ## Append all holidays to the time.df data.frame
 ##------------------------------------------------------------------
 new.df	<- data.frame(	time.df, 
-						sb_m00,
+						sb_m01, sb_m00,
 						va_m02, va_m01, va_m00, va_p01, va_p02,
-						ea_m02, ea_m01, ea_m00, ea_p01, ea_p02
+						ea_m02, ea_m01, ea_m00, ea_p01, ea_p02,
                         mo_m01, mo_m00, mo_p01,
 						md_m01, md_m00, md_p01,
-						fj_m01, fj_m00, fj_p01,
+						fj_m02, fj_m01, fj_m00, fj_p01,
+                        bs_m02, bs_m01, bs_m00,
 						ld_m01, ld_m00, ld_p01,
                         ha_m01, ha_m00, ha_p01,
-                        td_m01, td_m00, td_p01,
+                        td_m01, td_m00, td_p01, td_p02,
 						xm_m02, xm_m01, xm_m00, xm_p01, xm_p02
 						)
 

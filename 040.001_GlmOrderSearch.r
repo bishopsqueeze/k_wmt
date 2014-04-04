@@ -36,7 +36,8 @@ wd	<- getwd()
 ## Load data
 ##------------------------------------------------------------------
 ##load("005_walmartCombinedData_20140314.Rdata")
-load("005_walmartCombinedData_20140326.Rdata")
+##load("005_walmartCombinedData_20140326.Rdata")
+load("005_walmartCombinedData_201400403.Rdata")
 
 ##------------------------------------------------------------------
 ## Remove superfluous items
