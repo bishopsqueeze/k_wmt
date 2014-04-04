@@ -74,7 +74,7 @@ minTime         <- 5
 maxTime         <- 186
 
 ## minimum requirements for a fit
-minObs          <- 100
+minObs          <- 90
 
 ##------------------------------------------------------------------
 ## Loop over all of the test s/d combos and compute the forecast
@@ -106,7 +106,7 @@ fourierRegressionGlm.list <- foreach(i=1:numTestSd) %dopar% {
 		if (num.obs >= minObs) {
             
             ws      <- tmp.hist$ws.min10
-            tmp.fit <- calcGlmOrderSearch(ws, min.order=5, max.order=30, min.boxcox=0, max.boxcox=1)
+            tmp.fit <- calcGlmOrderSearch(ws, min.order=5, max.order=40, min.boxcox=0, max.boxcox=1)
             
 		} else {
             
@@ -147,12 +147,12 @@ aic.mat[ which(rownames(aic.mat) %in% names(unlist(lapply(fourierRegressionGlm.l
 ##------------------------------------------------------------------
 ## Extract department-level average orders
 ##------------------------------------------------------------------
-dept.aic <- tapply(aic.mat[,c("k")], aic.mat[,c("dept")], function(x){ceiling(mean(x, na.rm=TRUE))})
+#dept.aic <- tapply(aic.mat[,c("k")], aic.mat[,c("dept")], function(x){ceiling(mean(x, na.rm=TRUE))})
 
 ##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
-save(dept.aic, fourierRegressionGlm.list, file="040.001_GlmOrderSearch_20140326.Rdata")
+#save(dept.aic, fourierRegressionGlm.list, file="040.001_GlmOrderSearch_20140326.Rdata")
 
 
 

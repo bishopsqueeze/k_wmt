@@ -71,11 +71,16 @@ numTestSd		<- uniq.list$numTestSd
 numWeek         <- 52
 minTime         <- 5
 maxTime         <- 186
-minOrder        <- 30
-maxOrder        <- 40
+minOrder        <- 15
+maxOrder        <- 20
 
 ## minimum requirements for a fit
 minObs          <- 90
+
+##------------------------------------------------------------------
+## Load the glm() variable selection list
+##------------------------------------------------------------------
+load("./VariableSearch/041_FourierVariableSearch_All_20140328.Rdata")
 
 ##------------------------------------------------------------------
 ## use sink() to monitor progress
@@ -88,8 +93,10 @@ sink("log.txt", append=TRUE)
 ##------------------------------------------------------------------
 ## Loop over all of the test s/d combos and compute the forecast
 ##------------------------------------------------------------------
+fourierOrderArima.list <- list()
 fourierOrderArima.list <- foreach(i=1:numTestSd) %dopar% {
-
+    #for (i in 1:numTestSd) {
+    
     ## grab s/d parameters from the clean.list()
 	tmp.sd		<- as.character(droplevels(uniqTestSd[i]))
 	tmp.sdName	<- paste("SD", tmp.sd, sep="_")
@@ -104,6 +111,8 @@ fourierOrderArima.list <- foreach(i=1:numTestSd) %dopar% {
 	tmp.wgt		<- ifelse(tmp.dat$isholiday, 5, 1)
 	tmp.hist	<- tmp.dat[ (tmp.tr_fl == 1) , ]			## historical data
 	tmp.proj	<- tmp.dat[ (tmp.tr_fl == 0) , ]			## projection data
+    
+    tmp.wgt.exp <- exp(-((5:147)-147)^2/(52^2))
     
     ## add new holiday flags
     holiday.df$sb_m01                           <- Lag(holiday.df$sb_m00,-1)
@@ -121,11 +130,15 @@ fourierOrderArima.list <- foreach(i=1:numTestSd) %dopar% {
 	##------------------------------------------------------------------
 	## basic  projection
 	##------------------------------------------------------------------
-	if ( (tmp.store > 0) & (tmp.dept %in% c(18)) ) {
+	if ( (tmp.store > 0) & (tmp.dept %in% c(5, 7, 72, 92)) ) {
 		if (num.obs >= minObs) {
 
             cat("Processing: SD = ", tmp.sdName, "\n")
 
+            ## grab variables to test
+            tmp.varlist <- fourierVariable.list[[tmp.sdName]]$coef
+            tmp.varlist <- names(tmp.varlist)[ c(grep("_",names(tmp.varlist )), grep("^n",names(tmp.varlist))) ]
+            
             ## grab the sales data
             ws <- tmp.hist$ws.min10
 
@@ -157,7 +170,14 @@ fourierOrderArima.list <- foreach(i=1:numTestSd) %dopar% {
             ## [***][d05]
             ##------------------------------------------------------------------
             } else if (tmp.dept == 5) {
-                tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("sb_m01","sb_m00","ea_m00","md_m00","fj_m00","td_m00","xm_m01")]
+                #tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("sb_m01","sb_m00","ea_m00","md_m00","fj_m00","td_m00","xm_m01")]
+                tmp.idx  <- grep("_", tmp.varlist)
+                if (tmp.store == 28) {
+                    tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c(c("sb_m01","sb_m00","fj_m00","td_m00","xm_m01"), tmp.varlist[tmp.idx])]
+                } else {
+                    tmp.ereg <- tmp.dat[ (tmp.tr_fl == 1) , tmp.varlist[-tmp.idx]]
+                    tmp.hhol <- cbind(holiday.df[ (tmp.tr_fl == 1), c(c("sb_m01","sb_m00","fj_m00","td_m00","xm_m01"), tmp.varlist[tmp.idx])], tmp.ereg)
+                }
                 
             ##------------------------------------------------------------------
             ## [***][d06] -
@@ -169,8 +189,15 @@ fourierOrderArima.list <- foreach(i=1:numTestSd) %dopar% {
             ## [***][d07] -
             ##------------------------------------------------------------------
             } else if (tmp.dept == 7) {
-                tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00","td_m00","td_p01")]
-
+                #tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("ea_m01","ea_m00","md_m00","fj_m00","td_m00","td_p01")]
+                tmp.idx  <- grep("_", tmp.varlist)
+                if (tmp.store == 28) {
+                    tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c(c("sb_m00", "td_m00", "xm_m01"), tmp.varlist[tmp.idx])]
+                } else {
+                    tmp.ereg <- tmp.dat[ (tmp.tr_fl == 1) , tmp.varlist[-tmp.idx]]
+                    tmp.hhol <- cbind(holiday.df[ (tmp.tr_fl == 1), c(c("sb_m00", "td_m00", "xm_m01"), tmp.varlist[tmp.idx])], tmp.ereg)
+                }
+                
             ##------------------------------------------------------------------
             ## [***][d08] -
             ##------------------------------------------------------------------
@@ -229,7 +256,15 @@ fourierOrderArima.list <- foreach(i=1:numTestSd) %dopar% {
             ## [***][d18] -
             ##------------------------------------------------------------------
             } else if (tmp.dept == 18) {
-                tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("sb_m00","va_m00","ea_m00","ha_m00")]
+                tmp.ereg <- tmp.dat[ (tmp.tr_fl == 1) , c("ndtemp","ndfuel","nmd1","nmd2","nmd3","nmd4","nmd5")]
+                tmp.hhol <- cbind(holiday.df[ (tmp.tr_fl == 1), c("ea_m02","ea_m01","ea_m00")], tmp.ereg)
+                #tmp.idx  <- grep("_", tmp.varlist)
+                #if (tmp.store == 28) {
+                #    tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c(c("sb_m00", "td_m00", "xm_m01"), tmp.varlist[tmp.idx])]
+                #} else {
+                #    tmp.ereg <- tmp.dat[ (tmp.tr_fl == 1) , tmp.varlist[-tmp.idx]]
+                #    tmp.hhol <- cbind(holiday.df[ (tmp.tr_fl == 1), c(c("sb_m00", "td_m00", "xm_m01"), tmp.varlist[tmp.idx])], tmp.ereg)
+                #}
                 
             ##------------------------------------------------------------------
             ## [***][d20] -
@@ -355,7 +390,16 @@ fourierOrderArima.list <- foreach(i=1:numTestSd) %dopar% {
             ## [***][d72] -
             ##------------------------------------------------------------------
             } else if (tmp.dept == 72) {
-                tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("sb_m00", "td_m00", "xm_m01")]
+                tmp.idx  <- grep("_", tmp.varlist)
+                if (tmp.store == 28) {
+                    tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c(c("sb_m00", "td_m00", "xm_m01"), tmp.varlist[tmp.idx])]
+                } else {
+                    tmp.ereg <- tmp.dat[ (tmp.tr_fl == 1) , tmp.varlist[-tmp.idx]]
+                    tmp.hhol <- cbind(holiday.df[ (tmp.tr_fl == 1), c(c("sb_m00", "td_m00", "xm_m01"), tmp.varlist[tmp.idx])], tmp.ereg)
+                }
+                #tmp.ereg <- tmp.dat[ (tmp.tr_fl == 1) , c("ndtemp","ndfuel","nmd1","nmd2","nmd3","nmd4","nmd5")]
+                #tmp.hhol <- cbind(holiday.df[ (tmp.tr_fl == 1), c("sb_m00", "td_m00", "xm_m01")], tmp.ereg)
+                #tmp.hhol <- cbind(holiday.df[ (tmp.tr_fl == 1), c("sb_m00", "td_m00", "xm_m01")], tmp.ereg)
                 
             ##------------------------------------------------------------------
             ## [***][d79] -
@@ -391,7 +435,14 @@ fourierOrderArima.list <- foreach(i=1:numTestSd) %dopar% {
             ## [***][d92] - (similar to d90)
             ##------------------------------------------------------------------
             } else if (tmp.dept == 92) {
-                tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m02","xm_m01","xm_m00")]
+                #tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c("td_m01","td_m00","xm_m02","xm_m01","xm_m00")]
+                tmp.idx  <- grep("_", tmp.varlist)
+                if (tmp.store == 28) {
+                    tmp.hhol <- holiday.df[ (tmp.tr_fl == 1), c(c("td_m01","td_m00","xm_m02","xm_m01","xm_m00"), tmp.varlist[tmp.idx])]
+                } else {
+                    tmp.ereg <- tmp.dat[ (tmp.tr_fl == 1) , tmp.varlist[-tmp.idx]]
+                    tmp.hhol <- cbind(holiday.df[ (tmp.tr_fl == 1), c(c("td_m01","td_m00","xm_m02","xm_m01","xm_m00"), tmp.varlist[tmp.idx])], tmp.ereg)
+                }
                 
             ##------------------------------------------------------------------
             ## [***][d93] - (similar to d93)
@@ -428,6 +479,7 @@ fourierOrderArima.list <- foreach(i=1:numTestSd) %dopar% {
 	}
     #return(tmp.fit)
 }
+names(fourierOrderArima.list) <- paste("SD_",uniqTestSd,sep="")
 
 ##------------------------------------------------------------------
 ## Load the results into a compact forms
@@ -449,12 +501,12 @@ for (i in 1:length(fourierOrderArima.list)) {
 ##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
-##save(list.names, list.k, aic.mat, fourierOrderArima.list, file="040.003_ArimaOrderSearch_Dept18_mink30_maxk40.Rdata")
+save(list.names, list.k, aic.mat, fourierOrderArima.list, file="040.003_ArimaOrderSearch_Dept05.07.72.92_Experiment.Rdata")
 
 
 ##------------------------------------------------------------------
 ## Close connection
 ##------------------------------------------------------------------
-sink()
+#sink()
 
 

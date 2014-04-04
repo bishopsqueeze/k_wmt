@@ -28,7 +28,7 @@ load("002_walmartCombinedData.Rdata")
 ##------------------------------------------------------------------
 ## Source Utilities
 ##------------------------------------------------------------------
-source("/Users/alexstephens/Development/kaggle/walmart/code/000_UtilityFunctions.r")
+source("/Users/alexstephens/Development/kaggle/walmart/k_wmt/000_UtilityFunctions.r")
 
 ##------------------------------------------------------------------
 ## Constants
@@ -175,16 +175,24 @@ for (i in 1:numSd) {
 		tmp.proto$tr_fl			<- 1*(as.Date(prototype.date) <= as.Date("2012-10-26"))
 		tmp.expl_fl				<- TRUE 
 	}
+
+    ##--------------------------------------------------------------
+    ## Extend the CPI and Unemployment rate
+    ##--------------------------------------------------------------
+    tmp.proto$unemp[is.na(tmp.proto$unemp)] <- tmp.proto$unemp[max(which(!is.na(tmp.proto$unemp)))]
+    tmp.proto$cpi[is.na(tmp.proto$cpi)]     <- tmp.proto$cpi[max(which(!is.na(tmp.proto$cpi)))]
     
     ##--------------------------------------------------------------
     ## normalize (mean=0, sd=1) historical data for that s/d
     ##--------------------------------------------------------------
-    tmp.proto$ntemp         <- scaleData(tmp.proto$temperature)
-    tmp.proto$ndtemp        <- scaleData(c(0,diff(tmp.proto$temperature)))
-    tmp.proto$nfuel         <- scaleData(tmp.proto$fuel_price)
-    tmp.proto$ndfuel        <- scaleData(c(0,diff(tmp.proto$fuel_price)))
-    tmp.proto$ncpi          <- scaleData(tmp.proto$cpi)
-    tmp.proto$nunemp        <- scaleData(tmp.proto$unemployment)
+    tmp.proto$ntemp         <- scale(tmp.proto$temperature)
+    tmp.proto$ndtemp        <- scale(c(0,diff(tmp.proto$temperature)))
+    tmp.proto$nfuel         <- scale(tmp.proto$fuel_price)
+    tmp.proto$ndfuel        <- scale(c(0,diff(tmp.proto$fuel_price)))
+    tmp.proto$ncpi          <- scale(tmp.proto$cpi)
+    #tmp.proto$ndcpi         <- scaleData(c(0,diff(tmp.proto$cpi)))     ## drop b/c interpolated
+    tmp.proto$nunemp        <- scale(tmp.proto$unemp)
+    #tmp.proto$ndunemp       <- scaleData(c(0,diff(tmp.proto$unemp)))   ## drop b/c slowly varying
         
     ##--------------------------------------------------------------
     ## zero-fill and scale markdown data [???]
@@ -197,21 +205,35 @@ for (i in 1:numSd) {
     tmp.proto$nmd4          <- ifelse(is.na(tmp.proto$markdown4), 0, tmp.proto$markdown4)
     tmp.proto$nmd5          <- ifelse(is.na(tmp.proto$markdown5), 0, tmp.proto$markdown5)
     
-    ## scale
+    ## get the maximum value of all markdowns for normalization
+    maxmd   <- max( tmp.proto[ ,c("nmd1","nmd2","nmd3","nmd4","nmd5")], na.rm=TRUE)
+    
+    ## scale by the max markdown so we can have relative comparison; also we avoid negative shocks from a markdown
     if ( sum(tmp.proto$nmd1 != 0) > 2 ) {
-        tmp.proto$nmd1      <- scaleData(tmp.proto$nmd1)
+        #tmp.proto$nmd1      <- scaleData(tmp.proto$nmd1)
+        #tmp.proto$nmd1      <- (tmp.proto$nmd1 - min(tmp.proto$nmd1,na.rm=TRUE))/(max(tmp.proto$nmd1,na.rm=TRUE) - min(tmp.proto$nmd1,na.rm=TRUE))
+        tmp.proto$nmd1      <- (tmp.proto$nmd1 / maxmd)
     }
-    if ( sum(tmp.proto$nmd1 != 0) > 2 ) {
-        tmp.proto$nmd2      <- scaleData(tmp.proto$nmd2)
+    if ( sum(tmp.proto$nmd2 != 0) > 2 ) {
+        #tmp.proto$nmd2      <- scaleData(tmp.proto$nmd2)
+        #tmp.proto$nmd2      <- (tmp.proto$nmd2 - min(tmp.proto$nmd2,na.rm=TRUE))/(max(tmp.proto$nmd2,na.rm=TRUE) - min(tmp.proto$nmd2,na.rm=TRUE))
+        tmp.proto$nmd2      <- (tmp.proto$nmd2 / maxmd)
+        
     }
-    if ( sum(tmp.proto$nmd1 != 0) > 2 ) {
-        tmp.proto$nmd3      <- scaleData(tmp.proto$nmd3)
+    if ( sum(tmp.proto$nmd3 != 0) > 2 ) {
+        #tmp.proto$nmd3      <- scaleData(tmp.proto$nmd3)
+        #tmp.proto$nmd3      <- (tmp.proto$nmd3 - min(tmp.proto$nmd3,na.rm=TRUE))/(max(tmp.proto$nmd3,na.rm=TRUE) - min(tmp.proto$nmd3,na.rm=TRUE))
+        tmp.proto$nmd3      <- (tmp.proto$nmd3 / maxmd)
     }
-    if ( sum(tmp.proto$nmd1 != 0) > 2 ) {
-        tmp.proto$nmd4      <- scaleData(tmp.proto$nmd4)
+    if ( sum(tmp.proto$nmd4 != 0) > 2 ) {
+        #tmp.proto$nmd4      <- scaleData(tmp.proto$nmd4)
+        #tmp.proto$nmd4      <- (tmp.proto$nmd4 - min(tmp.proto$nmd4,na.rm=TRUE))/(max(tmp.proto$nmd4,na.rm=TRUE) - min(tmp.proto$nmd4,na.rm=TRUE))
+        tmp.proto$nmd4      <- (tmp.proto$nmd4 / maxmd)
     }
-    if ( sum(tmp.proto$nmd1 != 0) > 2 ) {
-        tmp.proto$nmd5      <- scaleData(tmp.proto$nmd5)
+    if ( sum(tmp.proto$nmd5 != 0) > 2 ) {
+        #tmp.proto$nmd5      <- scaleData(tmp.proto$nmd5)
+        #tmp.proto$nmd5      <- (tmp.proto$nmd5 - min(tmp.proto$nmd5,na.rm=TRUE))/(max(tmp.proto$nmd5,na.rm=TRUE) - min(tmp.proto$nmd5,na.rm=TRUE))
+        tmp.proto$nmd5      <- (tmp.proto$nmd5 / maxmd)
     }
     
 	##--------------------------------------------------------------
@@ -226,8 +248,9 @@ for (i in 1:numSd) {
     ## redundant variables
     tmp.proto$temperature   <- NULL
     tmp.proto$fuel_price    <- NULL
-    #tmp.proto$cpi           <- NULL    ## retain for extrapolation
-    #tmp.proto$unemployment  <- NULL    ## retain for extrapolation
+    tmp.proto$cpi           <- NULL
+    tmp.proto$unemployment  <- NULL
+    tmp.proto$unemp         <- NULL
     tmp.proto$markdown1     <- NULL
     tmp.proto$markdown2     <- NULL
     tmp.proto$markdown3     <- NULL
@@ -247,7 +270,9 @@ for (i in 1:numSd) {
                                 ntest=num.test,
 								orig.len=tmp.len,
 								expl_fl=tmp.expl_fl,
-								data=tmp.proto
+								data=tmp.proto,
+                                mean.sales=mean(tmp.proto$weekly_sales, na.rm=TRUE)
+                                
 							)
 														
 if ((i %% 100) == 0) { cat("iteration %d", i, "\n") }
@@ -256,5 +281,5 @@ if ((i %% 100) == 0) { cat("iteration %d", i, "\n") }
 ##------------------------------------------------------------------
 ## Step 3:  Save the list to a file
 ##------------------------------------------------------------------
-save(comb, train, test, stores, features, uniq.list, sd.list, prototype.date, file="003_walmartCombinedData.Rdata")
+##save(comb, train, test, stores, features, uniq.list, sd.list, prototype.date, file="003_walmartCombinedData.Rdata")
 
