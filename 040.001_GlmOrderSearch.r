@@ -37,7 +37,7 @@ wd	<- getwd()
 ##------------------------------------------------------------------
 ##load("005_walmartCombinedData_20140314.Rdata")
 ##load("005_walmartCombinedData_20140326.Rdata")
-load("005_walmartCombinedData_201400403.Rdata")
+load("005_walmartCombinedData_20140403.Rdata")     ## backfilled the markdown data
 
 ##------------------------------------------------------------------
 ## Remove superfluous items
@@ -73,7 +73,8 @@ numTestSd		<- uniq.list$numTestSd
 numWeek         <- 52
 minTime         <- 5
 maxTime         <- 186
-
+minOrder        <- 5
+maxOrder        <- 40
 ## minimum requirements for a fit
 minObs          <- 90
 
@@ -107,7 +108,7 @@ fourierRegressionGlm.list <- foreach(i=1:numTestSd) %dopar% {
 		if (num.obs >= minObs) {
             
             ws      <- tmp.hist$ws.min10
-            tmp.fit <- calcGlmOrderSearch(ws, min.order=5, max.order=40, min.boxcox=0, max.boxcox=1)
+            tmp.fit <- calcGlmOrderSearch(ws, min.order=minOrder, max.order=maxOrder, min.boxcox=0, max.boxcox=1)
             
 		} else {
             
@@ -126,14 +127,14 @@ names(fourierRegressionGlm.list) <- paste("SD_",uniqTestSd,sep="")
 ##------------------------------------------------------------------
 
 ## define and load the matrix
-aic.mat <- matrix(, nrow=length(fourierRegressionGlm.list), ncol=30-5+1)
+aic.mat <- matrix(, nrow=length(fourierRegressionGlm.list), ncol=maxOrder-minOrder+1)
 for (i in 1:nrow(aic.mat)) {
     if ( !is.null(fourierRegressionGlm.list[[i]]$res[,2]) ) {
         aic.mat[i, ] <- fourierRegressionGlm.list[[i]]$res[,2]
     }
 }
 rownames(aic.mat) <- names(fourierRegressionGlm.list)
-colnames(aic.mat) <- paste("X",seq(5,30,1),sep="")
+colnames(aic.mat) <- paste("X",seq(minOrder,maxOrder,1),sep="")
 
 ## add store/dept/k columns
 aic.mat <- cbind(   aic.mat,
@@ -148,12 +149,12 @@ aic.mat[ which(rownames(aic.mat) %in% names(unlist(lapply(fourierRegressionGlm.l
 ##------------------------------------------------------------------
 ## Extract department-level average orders
 ##------------------------------------------------------------------
-#dept.aic <- tapply(aic.mat[,c("k")], aic.mat[,c("dept")], function(x){ceiling(mean(x, na.rm=TRUE))})
+dept.aic <- tapply(aic.mat[,c("k")], aic.mat[,c("dept")], function(x){ceiling(mean(x, na.rm=TRUE))})
 
 ##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
-#save(dept.aic, fourierRegressionGlm.list, file="040.001_GlmOrderSearch_20140326.Rdata")
+save(dept.aic, fourierRegressionGlm.list, file="040.001_GlmOrderSearch_20140403.Rdata")
 
 
 

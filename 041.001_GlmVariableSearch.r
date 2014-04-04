@@ -33,7 +33,8 @@ wd	<- getwd()
 ## Load data
 ##------------------------------------------------------------------
 ##load("005_walmartCombinedData_20140314.Rdata")
-load("005_walmartCombinedData_20140326.Rdata")
+##load("005_walmartCombinedData_20140326.Rdata")
+load("005_walmartCombinedData_20140403.Rdata")     ## backfilled the markdown data
 
 ##------------------------------------------------------------------
 ## Remove superfluous items
@@ -73,7 +74,7 @@ minOrder        <- 5
 maxOrder        <- 40
 
 ## minimum requirements for a fit
-minObs          <- 100
+minObs          <- 90
 
 ##------------------------------------------------------------------
 ## Loop over all of the test s/d combos and compute the forecast
@@ -109,13 +110,13 @@ fourierRegressionGlm.list <- foreach(i=1:numTestSd) %dopar% {
             
             ## define the regressors
             reg.dates   <- holiday.df[ (tmp.tr_fl == 1), c(grep("ea_", names(holiday.df)), grep("mo_",names(holiday.df))) ]
-            all.dates   <- holiday.df[ (tmp.tr_fl == 1), grep("_", names(holiday.df)) ]
-            reg.econ    <- tmp.dat[ (tmp.tr_fl == 1), c(19:23) ]
+            ##all.dates   <- holiday.df[ (tmp.tr_fl == 1), grep("_", names(holiday.df)) ]
+            reg.econ    <- tmp.dat[ (tmp.tr_fl == 1), c("ntemp","ndtemp","nfuel","ndfuel","ncpi","nunemp","nmd1","nmd2","nmd3","nmd4","nmd5") ]
             
             ## weight options
             tmp.wgt.unif    <- rep(1, length(ws))
-            tmp.wgt.wmt     <- tmp.wgt[ (tmp.tr_fl == 1) ]
-            tmp.wgt.exp     <- exp(-((5:147)-147)^2/(52^2))
+            #tmp.wgt.wmt     <- tmp.wgt[ (tmp.tr_fl == 1) ]
+            #tmp.wgt.exp     <- exp(-((5:147)-147)^2/(52^2))
             
             ## perform the fits
             
@@ -129,13 +130,13 @@ fourierRegressionGlm.list <- foreach(i=1:numTestSd) %dopar% {
             ##tmp.fit     <- calcGlmVariableSearch(ws, regs.hist=reg.econ, min.order=minOrder, max.order=maxOrder, min.boxcox=0, max.boxcox=1, wgt=tmp.wgt.exp)
 
             ## Min5_Max40_FactorsEcon_HolidaysEaMo_WeightEqual
-            ##tmp.fit     <- calcGlmVariableSearch(ws, regs.hist=cbind(reg.dates, reg.econ), min.order=minOrder, max.order=maxOrder, min.boxcox=0, max.boxcox=1, wgt=tmp.wgt.unif)
+            tmp.fit     <- calcGlmVariableSearch(ws, regs.hist=cbind(reg.dates, reg.econ), min.order=minOrder, max.order=maxOrder, min.boxcox=0, max.boxcox=1, wgt=tmp.wgt.unif)
 
             ## Min5_Max40_FactorsEcon_HolidaysAll_WeightEqual
             ##tmp.fit     <- calcGlmVariableSearch(ws, regs.hist=cbind(all.dates, reg.econ), min.order=minOrder, max.order=maxOrder, min.boxcox=0, max.boxcox=1, wgt=tmp.wgt.unif)
             
             ## Min5_Max40_FactorsEcon_HolidaysAll_WeightExp
-            tmp.fit     <- calcGlmVariableSearch(ws, regs.hist=cbind(all.dates, reg.econ), min.order=minOrder, max.order=maxOrder, min.boxcox=0, max.boxcox=1, wgt=tmp.wgt.exp)
+            ##tmp.fit     <- calcGlmVariableSearch(ws, regs.hist=cbind(all.dates, reg.econ), min.order=minOrder, max.order=maxOrder, min.boxcox=0, max.boxcox=1, wgt=tmp.wgt.exp)
 
 		} else {
 		
@@ -167,10 +168,10 @@ colnames(aic.mat) <- paste("X",seq(minOrder,maxOrder,1),sep="")
 
 ## add store/dept/k columns
 aic.mat <- cbind(   aic.mat,
-store=as.numeric(substr(rownames(aic.mat),4,5)),
-dept=as.numeric(substr(rownames(aic.mat),7,8)),
-k=NA
-)
+                    store=as.numeric(substr(rownames(aic.mat),4,5)),
+                    dept=as.numeric(substr(rownames(aic.mat),7,8)),
+                    k=NA
+                )
 
 ## append the order (k) to the matrix
 aic.mat[ which(rownames(aic.mat) %in% names(unlist(lapply(fourierRegressionGlm.list, function(x){x$k})))), c("k")] <- unlist(lapply(fourierRegressionGlm.list, function(x){x$k}))
@@ -183,7 +184,7 @@ dept.aic <- tapply(aic.mat[,c("k")], aic.mat[,c("dept")], function(x){ceiling(me
 ##------------------------------------------------------------------
 ## Save image
 ##------------------------------------------------------------------
-save(aic.mat, dept.aic, fourierRegressionGlm.list, file="041.001_GlmVariableSearch_Min5_Max40_FactorsEcon_HolidaysAll_WeightExp_20140329.Rdata")
+save(aic.mat, dept.aic, fourierRegressionGlm.list, file="041.001_GlmVariableSearch_Min5_Max40_FactorsAll_HolidaysEaMo_WeightUnif_201400403.Rdata")
 
 
 

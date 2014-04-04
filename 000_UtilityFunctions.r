@@ -406,12 +406,12 @@ calcFourierOrder <- function(x, id="s/d", regs.hist=NULL, min.order=5, max.order
     y   <- ts(x, start=c(2010,5), freq=365.25/7)
     
     ## define a placeholder matrix for results
-    bestmat <- matrix(, nrow=(max.order-min.order+1), ncol=2)
+    bestmat <- matrix(, nrow=(max.order-min.order+1), ncol=4)
     
-    ## compute even orders only
+    ## compute fits for a range of harmonics
     for (i in seq(from=min.order, to=max.order, by=1)) {
 
-        ## generate a data frame for the fit: x ~ t + fourier(k) + regressors
+        ## generate a data frame for the fit: x ~ fourier(k) + regressors
         if ( !is.null(regs.hist) ) {
             fit.df  <- data.frame(fourier(y, K=i), regs.hist)
         } else {
@@ -419,10 +419,10 @@ calcFourierOrder <- function(x, id="s/d", regs.hist=NULL, min.order=5, max.order
         }
             
         ## compute the arima fit
-        fit  <- auto.arima(y, xreg=as.matrix(fit.df), seasonal=FALSE, trace=FALSE)
+        fit  <- auto.arima(y, xreg=as.matrix(fit.df), seasonal=FALSE, trace=TRUE)
         
         ## record results
-        bestmat[(i-min.order+1),] <- c(i, fit$aicc)
+        bestmat[(i-min.order+1),] <- c(i, fit$aicc, fit$aic, fit$bic)
         
     }
     
@@ -437,11 +437,19 @@ calcFourierOrder <- function(x, id="s/d", regs.hist=NULL, min.order=5, max.order
     }
     
     ## perform the fit
-    bestfit <- auto.arima(y, xreg=as.matrix(fit.df), seasonal=FALSE, trace=FALSE)
+    bestfit <- auto.arima(y, xreg=as.matrix(fit.df), seasonal=FALSE, trace=TRUE)
     fitted	<- InvBoxCox(as.vector(fitted(bestfit)), lambda)
     
 	## return the original vector, the in-sample, out-of-sample, and box-cox parameter
-	return(list(x=orig.x, id=id, fitted=fitted, lambda=lambda, k=k, res=bestmat))
+	return(list(    x=orig.x,
+                    id=id,
+                    fitted=fitted,
+                    lambda=lambda,
+                    k=k,
+                    residuals=(orig.x-fitted),
+                    res=bestmat,
+                    regs=names(regs.hist),
+                    arma=bestfit$arma))
 }
 
 ##########################################################################################
@@ -557,8 +565,16 @@ calcGlmVariableSearch <- function(x, regs.hist=NULL, min.order=5, max.order=30, 
     fit.sum <- summary(bestfit)
     
 	## return the original vector, the in-sample, out-of-sample, and box-cox parameter
-	return(list(x=orig.x, fitted=fitted, lambda=lambda, k=k, res=bestmat, aic=bestfit$aic,
-                coef=coefficients(bestfit), sderr=fit.sum$coefficients[,2], tval=fit.sum$coefficients[,3]))
+	return(list(    x=orig.x,
+                    fitted=fitted,
+                    lambda=lambda,
+                    k=k,
+                    res=bestmat,
+                    aic=bestfit$aic,
+                    coef=coefficients(bestfit),
+                    coef.names=names(coefficients(bestfit)),
+                    sderr=fit.sum$coefficients[,2],
+                    tval=fit.sum$coefficients[,3]))
 
 }
 

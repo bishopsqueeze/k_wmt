@@ -198,39 +198,59 @@ for (i in 1:numSd) {
     ## back-fill nweek data
     ##--------------------------------------------------------------
     ## markdown 1
-    bad.md1         <- which(is.na(tmp.proto$markdown1))
-    bad.nweek       <- tmp.proto$nweek[bad.md1]
-    tmp.md1         <- aggregate(markdown1 ~ nweek, data=tmp.proto, FUN=mean)
-    tmp.proto$nmd1           <- tmp.proto$markdown1
-    tmp.proto$nmd1[bad.md1]  <- tmp.md1[bad.nweek,2]
+    if (sum(!is.na(tmp.proto$markdown1)) > 0) {
+        bad.md1                 <- which(is.na(tmp.proto$markdown1))
+        bad.nweek               <- tmp.proto$nweek[bad.md1]
+        tmp.md1                 <- aggregate(markdown1 ~ nweek, data=tmp.proto, FUN=mean)
+        tmp.proto$nmd1          <- tmp.proto$markdown1
+        tmp.proto$nmd1[bad.md1] <- tmp.md1[bad.nweek,2]
+    } else {
+        tmp.proto$nmd1          <- tmp.proto$markdown1
+    }
 
     ## markdown 1
-    bad.md2         <- which(is.na(tmp.proto$markdown2))
-    bad.nweek       <- tmp.proto$nweek[bad.md2]
-    tmp.md2         <- aggregate(markdown2 ~ nweek, data=tmp.proto, FUN=mean)
-    tmp.proto$nmd2           <- tmp.proto$markdown2
-    tmp.proto$nmd2[bad.md2]  <- tmp.md2[bad.nweek,2]
+    if (sum(!is.na(tmp.proto$markdown2)) > 0) {
+        bad.md2         <- which(is.na(tmp.proto$markdown2))
+        bad.nweek       <- tmp.proto$nweek[bad.md2]
+        tmp.md2         <- aggregate(markdown2 ~ nweek, data=tmp.proto, FUN=mean)
+        tmp.proto$nmd2           <- tmp.proto$markdown2
+        tmp.proto$nmd2[bad.md2]  <- tmp.md2[bad.nweek,2]
+    } else {
+        tmp.proto$nmd2          <- tmp.proto$markdown2
+    }
 
     ## markdown 1
-    bad.md3         <- which(is.na(tmp.proto$markdown3))
-    bad.nweek       <- tmp.proto$nweek[bad.md3]
-    tmp.md3         <- aggregate(markdown3 ~ nweek, data=tmp.proto, FUN=mean)
-    tmp.proto$nmd3           <- tmp.proto$markdown3
-    tmp.proto$nmd3[bad.md3]  <- tmp.md3[bad.nweek,2]
+    if (sum(!is.na(tmp.proto$markdown3)) > 0) {
+        bad.md3         <- which(is.na(tmp.proto$markdown3))
+        bad.nweek       <- tmp.proto$nweek[bad.md3]
+        tmp.md3         <- aggregate(markdown3 ~ nweek, data=tmp.proto, FUN=mean)
+        tmp.proto$nmd3           <- tmp.proto$markdown3
+        tmp.proto$nmd3[bad.md3]  <- tmp.md3[bad.nweek,2]
+    } else {
+        tmp.proto$nmd3          <- tmp.proto$markdown3
+    }
+ 
+    ## markdown 4
+    if (sum(!is.na(tmp.proto$markdown4)) > 0) {
+        bad.md4         <- which(is.na(tmp.proto$markdown4))
+        bad.nweek       <- tmp.proto$nweek[bad.md4]
+        tmp.md4         <- aggregate(markdown4 ~ nweek, data=tmp.proto, FUN=mean)
+        tmp.proto$nmd4           <- tmp.proto$markdown4
+        tmp.proto$nmd4[bad.md4]  <- tmp.md4[bad.nweek,2]
+    } else {
+        tmp.proto$nmd4          <- tmp.proto$markdown4
+    }
 
-    ## markdown 1
-    bad.md4         <- which(is.na(tmp.proto$markdown4))
-    bad.nweek       <- tmp.proto$nweek[bad.md4]
-    tmp.md4         <- aggregate(markdown4 ~ nweek, data=tmp.proto, FUN=mean)
-    tmp.proto$nmd4           <- tmp.proto$markdown4
-    tmp.proto$nmd4[bad.md4]  <- tmp.md4[bad.nweek,2]
-
-    ## markdown 1
-    bad.md5         <- which(is.na(tmp.proto$markdown5))
-    bad.nweek       <- tmp.proto$nweek[bad.md5]
-    tmp.md5         <- aggregate(markdown5 ~ nweek, data=tmp.proto, FUN=mean)
-    tmp.proto$nmd5           <- tmp.proto$markdown5
-    tmp.proto$nmd5[bad.md5]  <- tmp.md5[bad.nweek,2]
+    ## markdown 5
+    if (sum(!is.na(tmp.proto$markdown5)) > 0) {
+        bad.md5         <- which(is.na(tmp.proto$markdown5))
+        bad.nweek       <- tmp.proto$nweek[bad.md5]
+        tmp.md5         <- aggregate(markdown5 ~ nweek, data=tmp.proto, FUN=mean)
+        tmp.proto$nmd5           <- tmp.proto$markdown5
+        tmp.proto$nmd5[bad.md5]  <- tmp.md5[bad.nweek,2]
+    } else {
+        tmp.proto$nmd5          <- tmp.proto$markdown5
+    }
 
     ##--------------------------------------------------------------
     ## zero-fill and scale markdown data [???]
@@ -248,29 +268,18 @@ for (i in 1:numSd) {
     
     ## scale by the max markdown so we can have relative comparison; also we avoid negative shocks from a markdown
     if ( sum(tmp.proto$nmd1 != 0) > 2 ) {
-        #tmp.proto$nmd1      <- scaleData(tmp.proto$nmd1)
-        #tmp.proto$nmd1      <- (tmp.proto$nmd1 - min(tmp.proto$nmd1,na.rm=TRUE))/(max(tmp.proto$nmd1,na.rm=TRUE) - min(tmp.proto$nmd1,na.rm=TRUE))
         tmp.proto$nmd1      <- (tmp.proto$nmd1 / maxmd)
     }
     if ( sum(tmp.proto$nmd2 != 0) > 2 ) {
-        #tmp.proto$nmd2      <- scaleData(tmp.proto$nmd2)
-        #tmp.proto$nmd2      <- (tmp.proto$nmd2 - min(tmp.proto$nmd2,na.rm=TRUE))/(max(tmp.proto$nmd2,na.rm=TRUE) - min(tmp.proto$nmd2,na.rm=TRUE))
         tmp.proto$nmd2      <- (tmp.proto$nmd2 / maxmd)
-        
     }
     if ( sum(tmp.proto$nmd3 != 0) > 2 ) {
-        #tmp.proto$nmd3      <- scaleData(tmp.proto$nmd3)
-        #tmp.proto$nmd3      <- (tmp.proto$nmd3 - min(tmp.proto$nmd3,na.rm=TRUE))/(max(tmp.proto$nmd3,na.rm=TRUE) - min(tmp.proto$nmd3,na.rm=TRUE))
         tmp.proto$nmd3      <- (tmp.proto$nmd3 / maxmd)
     }
     if ( sum(tmp.proto$nmd4 != 0) > 2 ) {
-        #tmp.proto$nmd4      <- scaleData(tmp.proto$nmd4)
-        #tmp.proto$nmd4      <- (tmp.proto$nmd4 - min(tmp.proto$nmd4,na.rm=TRUE))/(max(tmp.proto$nmd4,na.rm=TRUE) - min(tmp.proto$nmd4,na.rm=TRUE))
         tmp.proto$nmd4      <- (tmp.proto$nmd4 / maxmd)
     }
     if ( sum(tmp.proto$nmd5 != 0) > 2 ) {
-        #tmp.proto$nmd5      <- scaleData(tmp.proto$nmd5)
-        #tmp.proto$nmd5      <- (tmp.proto$nmd5 - min(tmp.proto$nmd5,na.rm=TRUE))/(max(tmp.proto$nmd5,na.rm=TRUE) - min(tmp.proto$nmd5,na.rm=TRUE))
         tmp.proto$nmd5      <- (tmp.proto$nmd5 / maxmd)
     }
     
@@ -309,9 +318,7 @@ for (i in 1:numSd) {
 								orig.len=tmp.len,
 								expl_fl=tmp.expl_fl,
 								data=tmp.proto,
-                                mean.sales=mean(tmp.proto$weekly_sales, na.rm=TRUE)
-                                
-							)
+                                mean.sales=mean(tmp.proto$weekly_sales, na.rm=TRUE))
 														
 if ((i %% 100) == 0) { cat("iteration %d", i, "\n") }
 }
