@@ -134,12 +134,6 @@ vanilla.list <- foreach(i=1:numTestSd) %dopar% {
 	num.obs		<- sum(!is.na(tmp.hist$weekly_sales))
 
     ## add new holiday flags
-    holiday.df$sb_m01                           <- Lag(holiday.df$sb_m00,-1)
-    holiday.df$sb_m01[is.na(holiday.df$sb_m01)] <- 0
-    holiday.df$ld_m02                           <- Lag(holiday.df$ld_m01,-1)
-    holiday.df$ld_m02[is.na(holiday.df$ld_m02)] <- 0
-    holiday.df$ld_m03                           <- Lag(holiday.df$ld_m02,-1)
-    holiday.df$ld_m03[is.na(holiday.df$ld_m03)] <- 0
     holiday.df$fj_m02                           <- Lag(holiday.df$fj_m01,-1)
     holiday.df$fj_m02[is.na(holiday.df$fj_m02)] <- 0
 

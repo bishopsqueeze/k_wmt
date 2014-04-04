@@ -62,6 +62,7 @@ time.df$day		<- format(time.df$date, "%d")
 ## Superbowl ("2010-02-12", "2011-02-11", "2012-02-10", "2013-02-08")
 ##******************************************************************
 d		<- as.Date(c("2010-02-12", "2011-02-11", "2012-02-10", "2013-02-08"))
+sb_m01	<- createDateFlags(d, time.df$date, n.lag=-1)
 sb_m00	<- createDateFlags(d, time.df$date, n.lag=0)
 
 
@@ -108,9 +109,18 @@ md_p01	<- createDateFlags(d, time.df$date, n.lag=+1)
 ## 4th of July c("2010-07-04", "2011-07-04", "2012-07-04", "2013-07-04")
 ##******************************************************************
 d 		<- as.Date(c("2010-07-04", "2011-07-04", "2012-07-04", "2013-07-04"))
+fj_m02	<- createDateFlags(d, time.df$date, n.lag=-2)
 fj_m01	<- createDateFlags(d, time.df$date, n.lag=-1)
 fj_m00	<- createDateFlags(d, time.df$date, n.lag=0)
 fj_p01	<- createDateFlags(d, time.df$date, n.lag=+1)
+
+##******************************************************************
+## Back-to_school c("2010-08-31", "2011-08-31", "2012-08-31", "2013-08-31")
+##******************************************************************
+d 		<- as.Date(c("2010-08-31", "2011-08-31", "2012-08-31", "2013-08-31"))
+bs_m02	<- createDateFlags(d, time.df$date, n.lag=-2)
+bs_m01	<- createDateFlags(d, time.df$date, n.lag=-1)
+bs_m00	<- createDateFlags(d, time.df$date, n.lag=0)
 
 
 ##******************************************************************

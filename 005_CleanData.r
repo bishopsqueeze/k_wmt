@@ -685,13 +685,13 @@ if ((i %% 100) == 0) { cat("iteration %d", i, "\n") }
 }
 
 ##------------------------------------------------------------------
-## Save results [APPLY THE TIMESTAMP
+## Save results [APPLY THE TIMESTAMP]
 ##------------------------------------------------------------------
 save(	comb, train, test, stores, features,
 		uniq.list, sd.list,
 		prototype.date, time.df, holiday.df,
 		clean.list,
-		file="005_walmartCombinedData_20140326.Rdata")
+		file="005_walmartCombinedData_20140403.Rdata")
 		
 
 
