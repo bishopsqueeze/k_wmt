@@ -391,11 +391,12 @@ genFourier <- function(t, terms, period) {
 ##------------------------------------------------------------------
 ## <function> :: calcFourierOrder
 ##------------------------------------------------------------------
-calcFourierOrder <- function(x, id="s/d", regs.hist=NULL, min.order=5, max.order=30, min.boxcox=0, max.boxcox=1, wgt=NULL) {
+calcFourierOrder <- function(x, id="s/d", regs.hist=NULL, min.order=5, max.order=30, min.boxcox=0, max.boxcox=1, wgt=NULL, lambda=NULL) {
 	
 	## do a box-cox transformation if all x > 0
 	if ( any(x < 0) ) {
-		orig.x <- x
+		orig.x  <- x
+        lambda  <- 1
 	} else {
 		orig.x  <- x
 		lambda	<- BoxCox.lambda(x, method="guerrero", lower=0, upper=1)
@@ -448,7 +449,7 @@ calcFourierOrder <- function(x, id="s/d", regs.hist=NULL, min.order=5, max.order
                     k=k,
                     residuals=(orig.x-fitted),
                     res=bestmat,
-                    regs=names(regs.hist),
+                    regs=regs.hist,
                     arma=bestfit$arma))
 }
 
@@ -718,13 +719,13 @@ calcFourierFit <- function(x, coeffs=NULL, regs.hist=NULL, regs.proj=NULL, k=5, 
 	
 	## no regressors
 	if ( is.null(regs.hist) ) {
-        fit         <- auto.arima(y, xreg=z, seasonal=FALSE, approximation=TRUE, allowdrift=TRUE, trace=FALSE)
+        fit         <- auto.arima(y, xreg=z, seasonal=FALSE, approximation=TRUE, allowdrift=TRUE, trace=TRUE)
 		fitted		<- InvBoxCox(as.vector(fitted(fit)), lambda)
 		fc 			<- forecast(fit, xreg=zf, h=h)
 		forecast	<- InvBoxCox(as.vector(fc$mean), lambda)
     ## regressors
 	} else {
-        fit         <- auto.arima(y,xreg=cbind(z,regs.hist), seasonal=FALSE, approximation=TRUE, allowdrift=TRUE, trace=FALSE)
+        fit         <- auto.arima(y,xreg=cbind(z,regs.hist), seasonal=FALSE, approximation=TRUE, allowdrift=TRUE, trace=TRUE)
 		fitted		<- InvBoxCox(as.vector(fitted(fit)), lambda)
 		fc			<- forecast(fit, xreg=cbind(zf,regs.proj), h=h)
 		forecast	<- InvBoxCox(as.vector(fc$mean), lambda)
@@ -738,7 +739,15 @@ calcFourierFit <- function(x, coeffs=NULL, regs.hist=NULL, regs.proj=NULL, k=5, 
 	}
 	
 	## return the original vector, the in-sample, out-of-sample, and box-cox parameter
-	return(list(x=orig.x, fitted=fitted, forecast=forecast, lambda=lambda, mae=mae))
+	return(list(
+                x=orig.x,
+                fitted=fitted,
+                forecast=forecast,
+                lambda=lambda,
+                mae=mae,
+                coeffs=coeffs,
+                regs=regs.hist,
+                k=length(coeffs)/2))
 }
 
 

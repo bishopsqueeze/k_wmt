@@ -42,8 +42,13 @@ load("./Forecasts/041_ForecastFourier_All_Min100_20140314.Rdata")       ## fouri
 #load("041.01_VanillaFourier_All_Min100_20140326.Rdata")    ## vanilla.list (S012)
 #load("./Forecasts/042_VanillaFourier_All_Min100_20140326.Rdata")        ## vanilla.list (S013)
 #load("042_VanillaFourier_TOP10TEST.Rdata")                              ## partical order serach based (S014)
-load("042.001_Forecast_MinK20_S021_04032014.Rdata")                     ## more order saerch (S020)
-#load("./Forecasts/050_ForecastNweek_20140314.Rdata")                    ## nweek.list (semi-historical)
+#load("042.001_Forecast_MinK20_S021_04032014.Rdata")                     ## more order saerch (S020)
+#load("049.002_Forecast_Fourier_ArimaOrder_20SigmaTval.Rdata")           ## updated order search (S023)
+#load("049.002_Forecast_Fourier_ArimaOrder_30SigmaTval.Rdata")           ## updated order search (S024)
+#load("049.002_Forecast_Fourier_ArimaOrder_30SigmaTval_Exp72.Rdata")           ## updated d72 only (S025)
+#load("049.002_Forecast_Fourier_ArimaOrder_30SigmaTval_D72.mh.k26_D07.mh.kfit.Rdata")           ## same as S025 w/updated d7 (S026)
+load("049.002_Forecast_Fourier_ArimaOrder_30SigmaTval_D72.mh.k26_D05.mh.k26.Rdata")           ## same as S025 w/updated d5 (S027)
+#load("./Forecasts/050_ForecastNweek_20140314.Rdata")                   ## nweek.list (semi-historical)
 load("050.002_RqForecastNweek_20140326.Rdata")                          ## nweek.list (semi-historical)
 nweek_trend.list    <- nweek.list; rm(nweek.list)
 load("050.003_RqForecastNweekNoTrend_20140326.Rdata")                   ## nweek.list (semi-historical, no-trend)
@@ -160,7 +165,7 @@ save(   median.list,
         vanilla.list,
         nweek_trend.list, nweek_notrend.list,
         res.matrix,
-        file="999_CompareModels_S022_20140403.Rdata")
+        file="999_CompareModels_S027_20140405.Rdata")
 
 
 
