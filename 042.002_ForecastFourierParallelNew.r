@@ -133,7 +133,7 @@ for (j in 1:numTestDept) {
         ##------------------------------------------------------------------
         ## basic stl projection
         ##------------------------------------------------------------------
-        if ( (tmp.store > 0) & (tmp.dept == 5) ) {
+        if ( (tmp.store > 0) & (tmp.dept == 7) ) {
             if ((num.obs > minObs) & (tmp.sd != "43_28")) {
 
                 ## clear the fit dat & report progress
@@ -230,13 +230,15 @@ for (j in 1:numTestDept) {
                         #tmp.peconomic     <- NULL
                         k                 <- 26
                     }
-                    ## this made the total slightly worse by 4 pts
-                    #if (tmp.dept == 7) {
-                    #    tmp.hholidays     <- as.matrix(holiday.df[ (tmp.tr_fl == 1), c("td_m00","xm_m01")])
-                    #    tmp.pholidays     <- as.matrix(holiday.df[ (tmp.tr_fl == 0), c("td_m00","xm_m01")])
-                    #    tmp.heconomic     <- NULL
-                    #    tmp.peconomic     <- NULL
-                    #}
+                    
+                    ## with c("td_m00","xm_m01") + k=fitted; slightly worse
+                    if (tmp.dept == 7) {
+                        tmp.hholidays     <- as.matrix(holiday.df[ (tmp.tr_fl == 1), c("td_m00","xm_m01")])
+                        tmp.pholidays     <- as.matrix(holiday.df[ (tmp.tr_fl == 0), c("td_m00","xm_m01")])
+                        #tmp.heconomic     <- NULL
+                        #tmp.peconomic     <- NULL
+                        k                 <- 26
+                    }
                     
                     if (tmp.dept == 72) {
                         tmp.hholidays     <- as.matrix(holiday.df[ (tmp.tr_fl == 1), c("td_m00","xm_m01")])
