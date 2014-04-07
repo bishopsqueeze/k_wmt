@@ -47,7 +47,12 @@ load("./Forecasts/041_ForecastFourier_All_Min100_20140314.Rdata")       ## fouri
 #load("049.002_Forecast_Fourier_ArimaOrder_30SigmaTval.Rdata")           ## updated order search (S024)
 #load("049.002_Forecast_Fourier_ArimaOrder_30SigmaTval_Exp72.Rdata")           ## updated d72 only (S025)
 #load("049.002_Forecast_Fourier_ArimaOrder_30SigmaTval_D72.mh.k26_D07.mh.kfit.Rdata")           ## same as S025 w/updated d7 (S026)
-load("049.002_Forecast_Fourier_ArimaOrder_30SigmaTval_D72.mh.k26_D05.mh.k26.Rdata")           ## same as S025 w/updated d5 (S027)
+#load("049.002_Forecast_Fourier_ArimaOrder_30SigmaTval_D72.mh.k26_D05.mh.k26.Rdata")           ## same as S025 w/updated d5 (S027)
+#load("049.002_Forecast_Fourier_ArimaOrder_30SigmaTval_D72.mh.k26_D05.mh.k26_D07.mh.k26.Rdata")  ## same as S025 w/updated d7 (k=26) (S028)
+#load("049.002_Forecast_Fourier_ArimaOrder_30SigmaTval_D72.mh.k26_D05.mh.k26_D95.mh.k26.Rdata")  ## same as S027 w/updated d95 (k=26) (S029)
+#load("049.002_Forecast_Fourier_ArimaOrder_30SigmaTval_D72.mh.k26_D05.mh.k26_D92.mh.k26.Rdata")  ## same as S027 w/updated d92 (k=26) (S030)
+#load("049.002_Forecast_Fourier_ArimaOrder_30SigmaTval_D72.mh.k26_D05.mh.k26_D23.mh.kfit.Rdata")  ## same as S027 w/updated d23 (xm_m01,td_m00) (S031)
+load("049.002_Forecast_Fourier_ArimaOrder_30SigmaTval_D72.mh.k26_D05.mh.k26_D23.mh.k26.Rdata")  ## same as S027 w/updated d23 (xm_m01,td_m00; k=26) (S032)
 #load("./Forecasts/050_ForecastNweek_20140314.Rdata")                   ## nweek.list (semi-historical)
 load("050.002_RqForecastNweek_20140326.Rdata")                          ## nweek.list (semi-historical)
 nweek_trend.list    <- nweek.list; rm(nweek.list)
@@ -165,7 +170,7 @@ save(   median.list,
         vanilla.list,
         nweek_trend.list, nweek_notrend.list,
         res.matrix,
-        file="999_CompareModels_S027_20140405.Rdata")
+        file="999_CompareModels_S032_20140405.Rdata")
 
 
 

@@ -133,7 +133,7 @@ for (j in 1:numTestDept) {
         ##------------------------------------------------------------------
         ## basic stl projection
         ##------------------------------------------------------------------
-        if ( (tmp.store > 0) & (tmp.dept == 7) ) {
+        if ( (tmp.store > 0) & (tmp.dept == 23) ) {
             if ((num.obs > minObs) & (tmp.sd != "43_28")) {
 
                 ## clear the fit dat & report progress
@@ -222,8 +222,9 @@ for (j in 1:numTestDept) {
                     ## experimental overrides
                     ##------------------------------------------------------------------
                     
-                    
+                    ## [!] - improved results
                     if (tmp.dept == 5) {
+                        
                         tmp.hholidays     <- as.matrix(holiday.df[ (tmp.tr_fl == 1), c("ea_m00","md_m00","td_m00","xm_m01")])
                         tmp.pholidays     <- as.matrix(holiday.df[ (tmp.tr_fl == 0), c("ea_m00","md_m00","td_m00","xm_m01")])
                         #tmp.heconomic     <- NULL
@@ -231,15 +232,31 @@ for (j in 1:numTestDept) {
                         k                 <- 26
                     }
                     
-                    ## with c("td_m00","xm_m01") + k=fitted; slightly worse
-                    if (tmp.dept == 7) {
-                        tmp.hholidays     <- as.matrix(holiday.df[ (tmp.tr_fl == 1), c("td_m00","xm_m01")])
-                        tmp.pholidays     <- as.matrix(holiday.df[ (tmp.tr_fl == 0), c("td_m00","xm_m01")])
-                        #tmp.heconomic     <- NULL
-                        #tmp.peconomic     <- NULL
+                    ## [x] attempted -- ineffective
+                    #if (tmp.dept == 7) {
+                    #    tmp.hholidays     <- as.matrix(holiday.df[ (tmp.tr_fl == 1), c("td_m00","xm_m01")])
+                    #    tmp.pholidays     <- as.matrix(holiday.df[ (tmp.tr_fl == 0), c("td_m00","xm_m01")])
+                    #    #tmp.heconomic     <- NULL
+                    #    #tmp.peconomic     <- NULL
+                    #    k                 <- 26
+                    #}
+                    
+                    if (tmp.dept == 23) {
+                        
+                        if (length(grep("xm_m01",var.holidays)) == 0) {
+                            var.holidays <- c(var.holidays, "xm_m01")
+                        }
+                        if (length(grep("td_m00",var.holidays)) == 0) {
+                            var.holidays <- c(var.holidays, "td_m00")
+                        }
+                        tmp.hholidays     <- as.matrix(holiday.df[ (tmp.tr_fl == 1), var.holidays])
+                        tmp.pholidays     <- as.matrix(holiday.df[ (tmp.tr_fl == 0), var.holidays])
+                        tmp.heconomic     <- NULL
+                        tmp.peconomic     <- NULL
                         k                 <- 26
                     }
-                    
+
+                    ## [!] - improved results
                     if (tmp.dept == 72) {
                         tmp.hholidays     <- as.matrix(holiday.df[ (tmp.tr_fl == 1), c("td_m00","xm_m01")])
                         tmp.pholidays     <- as.matrix(holiday.df[ (tmp.tr_fl == 0), c("td_m00","xm_m01")])
@@ -247,6 +264,24 @@ for (j in 1:numTestDept) {
                         tmp.peconomic     <- NULL
                         k                 <- 26
                     }
+                    
+                    ## [x] attempted -- ineffective
+                    #if (tmp.dept == 92) {
+                    #    tmp.hholidays     <- as.matrix(holiday.df[ (tmp.tr_fl == 1), c("td_m00","xm_m01")])
+                    #    tmp.pholidays     <- as.matrix(holiday.df[ (tmp.tr_fl == 0), c("td_m00","xm_m01")])
+                    #    #    tmp.heconomic     <- NULL
+                    #    #    tmp.peconomic     <- NULL
+                    #    k                 <- 26
+                    #}
+                    
+                    ## [x] attempted -- ineffective
+                    #if (tmp.dept == 95) {
+                    #    tmp.hholidays     <- as.matrix(holiday.df[ (tmp.tr_fl == 1), c("xm_m03","xm_m02","xm_m01")])
+                    #    tmp.pholidays     <- as.matrix(holiday.df[ (tmp.tr_fl == 0), c("xm_m03","xm_m02","xm_m01")])
+                    #    tmp.heconomic     <- NULL
+                    #    tmp.peconomic     <- NULL
+                    #    k                 <- 26
+                    #}
                     
                     
                 } else {

@@ -30,7 +30,7 @@ load("005_walmartCombinedData_20140403.Rdata")
 ##------------------------------------------------------------------
 ## Read files
 ##------------------------------------------------------------------
-setwd("/Users/alexstephens/Development/kaggle/walmart/data/current/Forecast_Fourier_ArimaOrder_30SigmaTval_D72.mh.k26_D05.mh.k26/")
+setwd("/Users/alexstephens/Development/kaggle/walmart/data/current/Forecast_Fourier_ArimaOrder_30SigmaTval_D72.mh.k26_D05.mh.k26_D23.mh.k26/")
 file.list <- dir()
 
 ##------------------------------------------------------------------
@@ -55,7 +55,7 @@ for (i in 1:length(file.list)) {
 ##------------------------------------------------------------------
 
 ## save the results
-save(vanilla.list, file="049.002_Forecast_Fourier_ArimaOrder_30SigmaTval_D72.mh.k26_D05.mh.k26.Rdata")
+save(vanilla.list, file="049.002_Forecast_Fourier_ArimaOrder_30SigmaTval_D72.mh.k26_D05.mh.k26_D23.mh.k26.Rdata")
 
 
 
